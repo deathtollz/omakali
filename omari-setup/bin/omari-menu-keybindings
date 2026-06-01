@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# omari:summary=Display the Niri keybindings in an interactive walker search menu (Mod+K).
+# omari:args=[--print|-p]
+
+print_only=false
+[[ "${1:-}" == "--print" || "${1:-}" == "-p" ]] && print_only=true
+
+OMARI_PATH="${OMARI_PATH:-$HOME/.local/share/omari}"
+
+# Collect every Niri binding file: Omari defaults + the user's own bindings.
+mapfile -t binding_files < <(
+  find "$OMARI_PATH/default/niri/bindings" -maxdepth 1 -name '*.kdl' 2>/dev/null
+  [[ -f "$HOME/.config/niri/bindings.kdl" ]] && echo "$HOME/.config/niri/bindings.kdl"
+)
+
+output_keybindings() {
+  awk '
+    function trim(v) { gsub(/^[ \t]+|[ \t]+$/, "", v); return v }
+
+    # Pretty-print a niri action when no hotkey-overlay-title is given.
+    function action_text(line,   a) {
+      if (match(line, /spawn(-sh)?[ \t]+"[^"]+"/)) {
+        a = substr(line, RSTART, RLENGTH)
+        sub(/spawn(-sh)?[ \t]+"/, "", a); sub(/"$/, "", a)
+        return a
+      }
+      a = line
+      sub(/^[^ \t]+[ \t]+/, "", a)          # drop the key combo
+      sub(/{.*$/, "", a)                    # drop the action block
+      gsub(/[a-z-]+=("[^"]*"|true|false)/, "", a)  # drop attributes
+      return trim(a)
+    }
+
+    # Lines that bind a key have the form:  <Key> [attrs] [title] { action }
+    /{[ \t]*spawn/ || /{[ \t]*(focus|move|consume|expel|switch|close|maximize|fullscreen|center|set-|toggle|quit|spawn|do-screen|screenshot|power)/ {
+      line = $0
+      combo = $1
+      # Skip section markers / non-bind lines.
+      if (combo ~ /[{}\/]/ || combo == "") next
+
+      if (match(line, /hotkey-overlay-title="[^"]*"/)) {
+        title = substr(line, RSTART, RLENGTH)
+        sub(/hotkey-overlay-title="/, "", title); sub(/"$/, "", title)
+      } else {
+        title = action_text(line)
+      }
+      if (title == "" || title == "true") next
+
+      printf "%-26s  %s\n", combo, title
+    }
+  ' "${binding_files[@]}" 2>/dev/null | sort -u
+}
+
+records="$(output_keybindings)"
+
+if [[ -z "$records" ]]; then
+  echo "No Niri keybindings found." >&2
+  exit 1
+fi
+
+# Plain output when not in a Wayland session or walker is unavailable.
+if [[ "$print_only" == "true" || -z "${WAYLAND_DISPLAY:-}" ]] || ! command -v walker >/dev/null 2>&1; then
+  printf '%s\n' "$records"
+  exit 0
+fi
+
+printf '%s\n' "$records" | omari-launch-walker --dmenu -p 'Keybindings' --width 900 --height 600 >/dev/null
