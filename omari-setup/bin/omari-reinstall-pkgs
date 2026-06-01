@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omari:summary=Reinstall all default Omaritu packages from the stable channel.
+# omari:requires-sudo=true
+
+set -e
+
+# Set the package repository to the stable mirrors
+omari-refresh-apt
+
+# Ensure all packages are installed
+mapfile -t packages < <(grep -v '^#' "$OMARI_PATH/install/omari-base.packages" | grep -v '^$')
+omari-pkg-add "${packages[@]}"

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Refresh the SDDM theme from default
+# omari:requires-sudo=true
+
+sudo mkdir -p /usr/share/sddm/themes
+
+# Refresh the SDDM theme from default
+sudo rm -rf /usr/share/sddm/themes/omari
+sudo cp -r $OMARI_PATH/default/sddm/omari /usr/share/sddm/themes/omari

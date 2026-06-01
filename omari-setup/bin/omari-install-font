@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# omari:summary=Install a font for use in the terminal and code editor.
+# omari:args=<font>
+# omari:examples=omari-install-font jetbrains-mono
+
+if [[ -z $1 ]]; then
+  echo "Usage: omadeb-install-font <font>" >&2
+  exit 1
+fi
+
+mkdir -p ~/.local/share/fonts
+
+case "$1" in
+jetbrains-mono)
+  omari-pkg-add fonts-jetbrains-mono
+  ;;
+iafonts)
+  omari-pkg-add fonts-ia-writer-mono
+  ;;
+cascadia-mono)
+  omari-pkg-add fonts-cascadia-mono-nf
+  ;;
+mscore)
+  omari-pkg-add ttf-mscorefonts-installer
+  ;;
+*)
+  echo "Usage: omadeb-install-font <font>" >&2
+  exit 1
+  ;;
+esac
+
+fc-cache

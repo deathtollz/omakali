@@ -1,0 +1,7 @@
+# Install logs
+*.log
+/var/log/omari-install.log
+
+# Editor/OS cruft
+*.swp
+.DS_Store

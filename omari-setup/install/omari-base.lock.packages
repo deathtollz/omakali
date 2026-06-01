@@ -1,0 +1,14 @@
+# Omari core package list installed with --no-install-recommends via install/packaging/base
+
+gnome-calculator
+gnome-keyring
+gnome-sushi
+gnome-themes-extra
+
+libreoffice
+
+nautilus
+
+xdg-desktop-portal-gnome
+
+sddm

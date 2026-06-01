@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Overwrite the user config for Plymouth boot sequence with the Omari default and rebuild it.
+# omari:requires-sudo=true
+
+sudo cp ~/.local/share/omari/default/plymouth/* /usr/share/plymouth/themes/omari/
+sudo update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/omari/omari.plymouth 100
+sudo update-alternatives --set default.plymouth /usr/share/plymouth/themes/omari/omari.plymouth
+sudo update-initramfs -u

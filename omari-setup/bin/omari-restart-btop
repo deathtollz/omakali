@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Reload btop configuration (used by the Omaritu theme switching).
+
+pkill -SIGUSR2 btop

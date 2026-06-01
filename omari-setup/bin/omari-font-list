@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=List available monospace fonts
+# omari:examples=omari font list | omari font set "CaskaydiaMono Nerd Font"
+
+fc-list :spacing=100 -f "%{family[0]}\n" | grep -v -i -E 'emoji|signwriting|omari' | sort -u

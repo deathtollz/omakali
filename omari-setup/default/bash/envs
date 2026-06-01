@@ -1,0 +1,18 @@
+# Editor used by CLI
+export SUDO_EDITOR="$EDITOR"
+
+# Fix BAT theme
+export BAT_THEME=ansi
+
+# Color man pages with bat
+export MANROFFOPT="-c"
+export MANPAGER="sh -c 'col -bx | batcat -l man -p'"
+
+# Gum
+if [ -f "$HOME/.config/omari/current/theme/gum.env" ]; then
+  source $HOME/.config/omari/current/theme/gum.env
+fi
+
+# Omari
+export OMARI_PATH=$HOME/.local/share/omari
+export PATH=$OMARI_PATH/bin:$PATH:$HOME/.local/bin:/usr/sbin:/usr/local/sbin

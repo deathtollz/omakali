@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Restart Waybar
+# omari:examples=omari restart waybar
+
+pkill -9 -x waybar
+setsid waybar >/dev/null 2>&1 &
+

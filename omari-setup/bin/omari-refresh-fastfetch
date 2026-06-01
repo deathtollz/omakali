@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Overwrite the user config for fastfetch with the Omari default.
+
+omari-refresh-config fastfetch/config.jsonc

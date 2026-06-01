@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Reapply the current Omari theme.
+
+THEME_NAME_PATH="$HOME/.config/omari/current/theme.name"
+
+if [[ -f $THEME_NAME_PATH ]]; then
+  OMARI_THEME_SKIP_BACKGROUND=1 omari-theme-set "$(cat $THEME_NAME_PATH)"
+fi

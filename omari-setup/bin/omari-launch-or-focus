@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# omari:summary=Launch an app or focus an existing window matching a pattern
+# omari:args=<window-pattern> <launch-command>
+
+if (($# == 0)); then
+  echo "Usage: omari-launch-or-focus [window-pattern] [launch-command]"
+  exit 1
+fi
+
+WINDOW_PATTERN="$1"
+LAUNCH_COMMAND="${2:-"$WINDOW_PATTERN"}"
+
+WINDOW_ADDRESS=$(
+  niri msg --json windows |
+    jq --arg app "${WINDOW_PATTERN}" '
+    [
+      .[]
+      | select(
+          .app_id
+          | ascii_downcase
+          | endswith($app | ascii_downcase)
+        )
+    ]
+    [-1]
+    | .id
+  '
+)
+
+if [ "${WINDOW_ADDRESS}" == "null" ]; then
+  eval exec setsid $LAUNCH_COMMAND
+else
+  niri msg action focus-window --id "${WINDOW_ADDRESS}"
+fi

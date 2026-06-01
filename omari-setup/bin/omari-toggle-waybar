@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omari:summary=Toggle Waybar visibility
+# omari:examples=omari toggle waybar
+
+omari-toggle waybar-off
+
+if pgrep -x waybar >/dev/null; then
+  pkill -x waybar
+else
+  waybar >/dev/null 2>&1 &
+fi

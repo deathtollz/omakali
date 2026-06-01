@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# omari:summary=Update system firmware using fwupd.
+# omari:requires-sudo=true
+
+set -e
+
+echo -e "\e[32mUpdate Firmware\e[0m"
+
+if omari-cmd-missing fwupdmgr; then
+  omari-pkg-add fwupd
+fi
+
+fwupdmgr refresh --force
+sudo fwupdmgr update

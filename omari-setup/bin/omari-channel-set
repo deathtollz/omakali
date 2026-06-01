@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# omari:summary=Set the Omari channel, which dictates what git branch and package repository is used.
+# omari:args=<stable|dev>
+# omari:requires-sudo=true
+
+if (($# == 0)); then
+  echo "Usage: omari-channel-set [stable|dev]"
+  exit 1
+else
+  channel="$1"
+fi
+
+case "$channel" in
+"stable") omari-branch-set "main" && omari-refresh-apt "stable" ;;
+"dev") omari-branch-set "dev" && omari-refresh-apt "dev" ;;
+*) echo "Unknown channel: $channel"; exit 1; ;;
+esac

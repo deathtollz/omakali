@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Return success if the focused Hyprland monitor is an Apple display.
+
+niri msg --json focused-output | jq -e 'select(.make == "Apple Computer Inc" and (.model | test("StudioDisplay|ProDisplayXDR|Studio XDR")))' >/dev/null

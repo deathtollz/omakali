@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# omari:summary=Remove preinstalled Omari applications (web apps, TUIs, and selected packages).
+
+if gum confirm "Are you sure you want to remove all preinstalled web apps, TUI wrappers, and desktop applications?"; then
+  echo -e "Removing preinstalled Omari applications...\n"
+
+  omari-webapp-remove-all
+  omari-tui-remove-all
+
+  # Remove npm stubs
+  # f.e. rm -f ~/.local/bin/codex
+
+  omari-pkg-drop \
+    spotify \
+    libreoffice \
+    pinta \
+    lazydocker
+fi

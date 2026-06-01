@@ -1,0 +1,33 @@
+# Transcoding helpers have moved to omari-transcode.
+
+transcode-video-1080p() {
+  omari-transcode "$1" mp4 1080p
+}
+
+transcode-video-4K() {
+  omari-transcode "$1" mp4 4k
+}
+
+transcode-video-gif() {
+  omari-transcode "$1" gif 1080p
+}
+
+img2jpg() {
+  omari-transcode "$1" jpg high
+}
+
+img2jpg-small() {
+  omari-transcode "$1" jpg low
+}
+
+img2jpg-medium() {
+  omari-transcode "$1" jpg medium
+}
+
+img2jpg-large() {
+  omari-transcode "$1" jpg high
+}
+
+img2png() {
+  omari-transcode "$1" png high
+}

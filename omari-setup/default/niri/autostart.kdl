@@ -1,0 +1,12 @@
+spawn-at-startup "waybar"
+spawn-at-startup "mako"
+spawn-sh-at-startup "fc-cache -f"
+spawn-sh-at-startup "swaybg -i ~/.config/omari/current/background -m fill"
+spawn-sh-at-startup "swaybg -i ~/.config/omari/current/background-blurred.jpg -m fill -n backdrop"
+spawn-at-startup "/usr/libexec/polkit-mate-authentication-agent-1"
+spawn-at-startup "omari-cmd-first-run"
+
+// Skip the hotkey overlay at startup.
+hotkey-overlay {
+    skip-at-startup
+}

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# omari:summary=Remove all the named packages from the system if they're installed (otherwise ignore).
+# omari:args=<packages...>
+# omari:requires-sudo=true
+
+for pkg in "$@"; do
+  if dpkg -l | grep -q "$pkg"; then
+    sudo apt-get -y remove --purge "$pkg"
+  fi
+done

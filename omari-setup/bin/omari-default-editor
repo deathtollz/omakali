@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# omari:summary=Set the default editor for $EDITOR
+# omari:args=[code|zed|vim|nvim]
+# omari:examples=omari default editor | omari default editor code | omari default editor helix
+
+if (($# == 0)); then
+  sed -n 's/^EDITOR=\(.*\)/\1/p' /etc/environment.d/99-default.conf
+  exit 0
+fi
+
+case "$1" in
+code) editor="code"; name="VSCode"; glyph="" ;;
+zed | zeditor) editor="zeditor"; name="Zed"; glyph="" ;;
+vim) editor="vim"; name="Vim"; glyph="" ;;
+nvim) editor="nvim"; name="Neovim"; glyph="" ;;
+*)
+  echo "Usage: omari-default-editor <code|zed|vim|nvim>"
+  exit 1
+  ;;
+esac
+
+omari-env-set EDITOR "$editor" >/dev/null 2>&1
+
+export EDITOR="$editor"
+omari-notification-send -g "$glyph" -u low "$name is now the default editor" "You may need to restart your terminal for changes to take effect"

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# omari:summary=Switch Omari branches and update from the selected branch.
+# omari:args=<branch>
+
+set -e
+
+if (($# == 0)); then
+  echo "Usage: omari-branch-set [master|dev]"
+  exit 1
+fi
+
+branch="$1"
+
+if ! git -C "$OMARI_PATH" diff --quiet || ! git -C "$OMARI_PATH" diff --cached --quiet; then
+  stashed=true
+  git -C "$OMARI_PATH" stash push -u -m "Autostash before switching to $branch"
+else
+  stashed=false
+fi
+
+# Switch branches
+git -C "$OMARI_PATH" switch "$branch"
+
+# Reapply stash if we made one
+if [[ $stashed == true ]]; then
+  if ! git -C "$OMARI_PATH" stash pop; then
+    echo "⚠️ Conflicts when applying stash — stash kept"
+  fi
+fi
+
+# Update the system from the new branch
+omari-update-perform

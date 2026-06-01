@@ -1,0 +1,5 @@
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+
+# PATH and OMARI variables for Niri session
+export OMARI_PATH="$HOME/.local/share/omari"
+export PATH="$OMARI_PATH/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin:$PATH"

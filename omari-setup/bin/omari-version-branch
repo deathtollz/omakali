@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Print the current Omari git branch.
+
+echo $(git -C "$OMARI_PATH" rev-parse --abbrev-ref HEAD)

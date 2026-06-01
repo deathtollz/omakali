@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# omari:summary=Reset all Omari user configs to the defaults.
+# omari:requires-sudo=true
+
+set -e
+
+if (( EUID == 0 )); then
+  echo "Error: This script should not be run as root"
+  exit 1
+fi
+
+echo "Resetting all Omari configs"
+cp -R ~/.local/share/omari/config/* ~/.config/
+cp ~/.local/share/omari/default/bashrc ~/.bashrc
+echo '[[ -f ~/.bashrc ]] && . ~/.bashrc' | tee ~/.bash_profile >/dev/null
+
+$(bash $OMARI_PATH/install/config/theme.sh)
+
+omari-refresh-plymouth
+omari-setup-nvim

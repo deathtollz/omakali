@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# omari:summary=Launch a floating terminal with the Omari presentation wrapper
+# omari:args=<command>
+
+cmd="$*"
+exec setsid xdg-terminal-exec --app-id=org.omari.terminal --title=Omari -e bash -c "omari-show-logo; $cmd; if (( \$? != 130 )); then omari-show-done; fi"

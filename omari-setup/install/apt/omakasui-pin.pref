@@ -1,0 +1,27 @@
+# Prevent omakasui packages from overriding Kali's base system libraries.
+# Priority 100 = install if not installed; won't override existing packages.
+# This lets omakasui-specific packages (niri, walker, etc.) install,
+# but stops them from dragging in newer Qt6/pipewire/ffmpeg/systemd builds
+# that conflict with Kali's versions.
+
+# Kali packages always win — explicit high priority
+Package: *
+Pin: release o=Kali
+Pin-Priority: 990
+
+Package: *
+Pin: release a=kali-rolling
+Pin-Priority: 990
+
+# Omakasui: allow install of packages not in Kali, but never override Kali libs
+Package: *
+Pin: release o=omakasui
+Pin-Priority: 100
+
+Package: *
+Pin: release l=omakasui-apt-packages
+Pin-Priority: 100
+
+Package: *
+Pin: release l=omakasui-packages
+Pin-Priority: 100

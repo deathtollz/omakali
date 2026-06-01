@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# omari:summary=Remove one of the supported fonts.
+# omari:args=<jetbrains-mono|iafonts|cascadia-mono|mscore>
+
+if [[ -z "$1" ]]; then
+  echo "Usage: omadeb-remove-font <font>" >&2
+  exit 1
+fi
+
+
+case "$1" in
+jetbrains-mono)
+  omari-pkg-remove fonts-jetbrains-mono
+  ;;
+iafonts)
+  omari-pkg-remove fonts-ia-writer-mono
+  ;;
+cascadia-mono)
+  omari-pkg-remove fonts-cascadia-mono-nf
+  ;;
+mscore)
+  omari-pkg-remove ttf-mscorefonts-installer
+  ;;
+*)
+  echo "Usage: omadeb-remove-font <font>" >&2
+  exit 1
+  ;;
+esac
+
+fc-cache

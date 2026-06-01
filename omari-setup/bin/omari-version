@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Print the installed Omari version.
+
+cat $OMARI_PATH/version

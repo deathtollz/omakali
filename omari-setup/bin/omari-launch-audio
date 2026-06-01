@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Launch the Omari audio controls TUI (provided by wiremix).
+
+omari-launch-or-focus-tui wiremix

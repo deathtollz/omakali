@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# omari:summary=Toggle Omari features between enabled and disabled.
+# omari:args=[--enabled-notification <text>] [--disabled-notification <text>] <flag-name>
+
+ENABLED_NOTIFICATION=""
+DISABLED_NOTIFICATION=""
+NOTIFICATION_SUMMARY=""
+
+while [[ $# -gt 1 ]]; do
+  case $1 in
+    --notification-summary) NOTIFICATION_SUMMARY="$2"; shift 2 ;;
+    --enabled-notification) ENABLED_NOTIFICATION="$2"; shift 2 ;;
+    --disabled-notification) DISABLED_NOTIFICATION="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
+
+FLAG_NAME="$1"
+FLAG="$HOME/.local/state/omari/toggles/$FLAG_NAME"
+
+if [[ -f $FLAG ]]; then
+  rm $FLAG
+  [[ -n $DISABLED_NOTIFICATION ]] && omari-notification-send -g "󰂛" "$NOTIFICATION_SUMMARY" "$DISABLED_NOTIFICATION"
+else
+  mkdir -p "$(dirname $FLAG)"
+  touch $FLAG
+  [[ -n $ENABLED_NOTIFICATION ]] && omari-notification-send -g "󰂚" "$NOTIFICATION_SUMMARY" "$ENABLED_NOTIFICATION"
+fi

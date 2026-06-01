@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# omari:summary=Set the current background image.
+# omari:args=<path-to-image> [zoom|center|stretch|fill|fit|spanned]
+# omari:examples=omari theme bg set ~/Pictures/background.png
+
+if [[ -z $1 ]]; then
+  echo "Usage: omari-theme-bg-set <path-to-image>" >&2
+  exit 1
+fi
+
+BACKGROUND="$1"
+CURRENT_BACKGROUND_LINK="$HOME/.config/omari/current/background"
+
+# Create symlink to the new background
+ln -nsf "$BACKGROUND" "$CURRENT_BACKGROUND_LINK"
+
+# Kill existing swaybg and start new one
+niri msg action do-screen-transition
+pkill -x swaybg
+setsid swaybg -i "$CURRENT_BACKGROUND_LINK" -m fill >/dev/null 2>&1 &
+
+# Create a blurred version of the background
+BLURRED_BACKGROUND="$HOME/.config/omari/current/background-blurred.jpg"
+convert "$BACKGROUND" -blur 0x15 "$BLURRED_BACKGROUND"
+
+setsid swaybg -i "$BLURRED_BACKGROUND" -m fill -n backdrop >/dev/null 2>&1 &
+

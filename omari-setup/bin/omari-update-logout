@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Prompt for logout if updates require it.
+
+if [[ -f $HOME/.local/state/omari/logout-required ]]; then
+  echo
+  gum confirm "Updates require logout. Ready?" && omari-system-logout
+fi

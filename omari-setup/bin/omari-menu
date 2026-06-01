@@ -1,0 +1,644 @@
+#!/bin/bash
+
+# omari:summary=Launch the Omari Menu or takes a parameter to jump straight to a submenu.
+
+export PATH="$HOME/.local/share/omari/bin:$PATH"
+
+# Set to true when going directly to a submenu, so we can exit directly
+BACK_TO_EXIT=false
+
+back_to() {
+  local parent_menu="$1"
+
+  if [[ $BACK_TO_EXIT == "true" ]]; then
+    exit 0
+  elif [[ -n $parent_menu ]]; then
+    "$parent_menu"
+  else
+    show_main_menu
+  fi
+}
+
+toggle_existing_menu() {
+  if pgrep -f "walker.*--dmenu" >/dev/null; then
+    walker --close >/dev/null 2>&1
+    exit 0
+  fi
+}
+
+menu() {
+  local prompt="$1"
+  local options="$2"
+  local extra="$3"
+  local preselect="$4"
+
+  read -r -a args <<<"$extra"
+
+  if [[ -n $preselect ]]; then
+    local index
+    index=$(echo -e "$options" | grep -nxF "$preselect" | cut -d: -f1)
+    if [[ -n $index ]]; then
+      args+=("-c" "$index")
+    fi
+  fi
+
+  echo -e "$options" | omari-launch-walker --dmenu --width 295 --minheight 1 --maxheight 630 -p "$prompt…" "${args[@]}" 2>/dev/null
+}
+
+terminal() {
+  xdg-terminal-exec "$@"
+}
+
+present_terminal() {
+  omari-launch-floating-terminal-with-presentation "$@"
+}
+
+open_in_editor() {
+  omari-notification-send -g "󰂮" -u low "Editing config file" "$1"
+  omari-launch-editor "$1"
+}
+
+install() {
+  present_terminal "echo 'Installing $1...'; omari-pkg-add $2"
+}
+
+install_font() {
+  present_terminal "echo 'Installing $1...'; omari-install-font $2 && sleep 2 && omari-font-set '$3'"
+}
+
+install_terminal() {
+  present_terminal "omari-install-terminal $1"
+}
+
+remove() {
+  present_terminal "echo 'Removing $1...'; omari-pkg-drop $2"
+}
+
+remove_font() {
+  present_terminal "echo 'Removing $1...'; omari-remove-font $2"
+}
+
+show_learn_menu() {
+  case $(menu "Learn" "  Keybindings\n  Tmux keybindings\n  Omari\n  Debian\n  Niri\n  Neovim\n󱆃  Bash") in
+  *Keybindings*) omari-launch-webapp "https://omari.omakasui.org/manual/essentials/hotkeys" "Omari Keybindings" ;;
+  *Tmux*) omari-menu-tmux-keybindings ;;
+  *Omari*) omari-launch-webapp "https://omari.omakasui.org/manual" "Omari" ;;
+  *Debian*) omari-launch-webapp "https://www.debian.org/doc/" "Debian" ;;
+  *Niri*) omari-launch-webapp "https://niri-wm.github.io/niri/" "Niri" ;;
+  *Bash*) omari-launch-webapp "https://devhints.io/bash" "Bash" ;;
+  *Neovim*) omari-launch-webapp "https://www.lazyvim.org/keymaps" "Neovim" ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_trigger_menu() {
+  case $(menu "Trigger" "󰔛  Reminder\n󰧸  Transcode\n  Share\n󰔎  Toggle") in
+  *Reminder*) show_reminder_menu ;;
+  *Transcode*) omari-transcode || back_to show_trigger_menu ;;
+  *Share*) show_share_menu ;;
+  *Toggle*) show_toggle_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_reminder_menu() {
+  case $(menu "Reminder" "󰔛  Set one\n󰔛  Show all\n󰔛  Clear all") in
+  *Set*) show_custom_reminder_input ;;
+  *"Show all"*) omari-reminder show ;;
+  *"Clear all"*) omari-reminder clear ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_custom_reminder_input() {
+  local minutes
+  minutes=$(omari-menu-input "Remind in minutes")
+
+  if [[ $minutes =~ ^[0-9]+$ ]] && ((minutes > 0)); then
+    show_reminder_message_input "$minutes"
+  elif [[ -n $minutes ]]; then
+    omari-notification-send -g "󰔛" "Invalid reminder" "Enter the number of minutes" -u critical
+    show_custom_reminder_input
+  else
+    back_to show_reminder_menu
+  fi
+}
+
+show_reminder_message_input() {
+  local minutes="$1"
+  local message
+  message=$(omari-menu-input "Reminder message")
+
+  if [[ -n $message ]]; then
+    omari-reminder "$minutes" "$message"
+  else
+    omari-reminder "$minutes"
+  fi
+}
+
+show_share_menu() {
+  case $(menu "Share" "  Clipboard\n  File \n  Folder\n󰥦  Receive") in
+  *Receive*) localsend_app ;;
+  *Clipboard*) omari-menu-share clipboard ;;
+  *File*) terminal bash -c "omari-menu-share file" ;;
+  *Folder*) terminal bash -c "omari-menu-share folder" ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_toggle_menu() {
+  case $(menu "Toggle" "󰔎  Nightlight") in
+  *Nightlight*) omari-toggle-nightlight ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_style_menu() {
+  case $(menu "Style" "󰸌  Theme\n󱣴  Plymouth\n  Font\n  Background\n  About") in
+  *Theme*) show_theme_menu ;;
+  *Plymouth*) omari-launch-walker -m menus:omariunlocks --width 800 --minheight 400 ;;
+  *Font*) show_font_menu ;;
+  *Background*) show_background_menu ;;
+  *About*) show_about_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_theme_menu() {
+  omari-launch-walker -m menus:omarithemes --width 800 --minheight 400
+}
+
+show_font_menu() {
+  font=$(menu "Font" "$(omari-font-list)" "--width 350" "$(omari-font-current)")
+  if [[ $font == "CNCLD" || -z $font ]]; then
+    back_to show_style_menu
+  else
+    omari-font-set "$font"
+  fi
+}
+
+show_background_menu() {
+  omari-launch-walker -m menus:omariBackgroundSelector --width 800 --minheight 400
+}
+
+show_about_menu() {
+  case $(menu "About" "  Edit Text\n  Set From Image\n  Restore Default") in
+  *Text*) omari-branding-about text ;;
+  *Image*) omari-branding-about image ;;
+  *Default*) omari-branding-about reset ;;
+  *) show_style_menu ;;
+  esac
+}
+
+show_setup_menu() {
+  case $(menu "Setup" "  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰤆  System Sleep\n  Folders\n  Keybindings\n󰓎  Defaults\n󰱔  DNS\n  Config") in
+  *Audio*) omari-launch-audio ;;
+  *Wifi*) omari-launch-wifi ;;
+  *Bluetooth*) omari-launch-bluetooth ;;
+  *Power*) show_setup_power_menu ;;
+  *System*) show_setup_system_menu ;;
+  *Keybindings*) open_in_editor ~/.config/niri/bindings.kdl ;;
+  *Defaults*) show_setup_default_menu ;;
+  *DNS*) present_terminal omari-setup-dns ;;
+  *Config*) show_setup_config_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_setup_power_menu() {
+  profile=$(menu "Power Profile" "$(omari-powerprofiles-list)" "" "$(powerprofilesctl get)")
+
+  if [[ $profile == "CNCLD" || -z $profile ]]; then
+    back_to show_setup_menu
+  else
+    powerprofilesctl set "$profile"
+  fi
+}
+
+show_setup_system_menu() {
+  local options=""
+
+ if omari-toggle-enable suspend-off; then
+    options="$options󰒲  Enable Suspend"
+  else
+    options="$options󰒲  Disable Suspend"
+  fi
+
+  case $(menu "System" "$options") in
+  *Suspend*) omari-toggle-suspend ;;
+  *) show_setup_menu ;;
+  esac
+}
+
+show_setup_default_menu() {
+  case $(menu "Default" "  Browser\n  Terminal\n  Editor") in
+  *Browser*) show_setup_default_browser_menu ;;
+  *Terminal*) show_setup_default_terminal_menu ;;
+  *Editor*) show_setup_default_editor_menu ;;
+  *) show_setup_menu ;;
+  esac
+}
+
+browser_desktop_exists() {
+  [[ -f ~/.local/share/applications/$1 || -f ~/.nix-profile/share/applications/$1 || -f /usr/share/applications/$1 ]]
+}
+
+show_setup_default_browser_menu() {
+  local options=""
+  browser_desktop_exists chromium.desktop && options="$options  Chromium"
+  browser_desktop_exists google-chrome.desktop && options="${options:+$options\n}󰊯  Chrome"
+  browser_desktop_exists brave-browser.desktop && options="${options:+$options\n}󰖟  Brave"
+  browser_desktop_exists microsoft-edge.desktop && options="${options:+$options\n}󰇩  Edge"
+  browser_desktop_exists firefox.desktop && options="${options:+$options\n}󰈹  Firefox"
+  browser_desktop_exists zen.desktop && options="${options:+$options\n}󰖟  Zen"
+
+  local current=""
+  case "$(omari-default-browser)" in
+  chromium) current="  Chromium" ;;
+  chrome) current="󰊯  Chrome" ;;
+  brave) current="󰖟  Brave" ;;
+  edge) current="󰇩  Edge" ;;
+  firefox) current="󰈹  Firefox" ;;
+  zen) current="󰖟  Zen" ;;
+  esac
+
+  case $(menu "Default Browser" "$options" "" "$current") in
+  *Chromium*) omari-default-browser chromium ;;
+  *Chrome*) omari-default-browser chrome ;;
+  *Brave*) omari-default-browser brave ;;
+  *Edge*) omari-default-browser edge ;;
+  *Firefox*) omari-default-browser firefox ;;
+  *Zen*) omari-default-browser zen ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_setup_default_terminal_menu() {
+  local options=""
+  omari-cmd-present alacritty && options="$options  Alacritty"
+  omari-cmd-present ghostty && options="${options:+$options\n}  Ghostty"
+  omari-cmd-present kitty && options="${options:+$options\n}  Kitty"
+
+  local current=""
+  case "$(omari-default-terminal)" in
+  alacritty) current="  Alacritty" ;;
+  ghostty) current="  Ghostty" ;;
+  kitty) current="  Kitty" ;;
+  esac
+
+  case $(menu "Default Terminal" "$options" "" "$current") in
+  *Alacritty*) omari-default-terminal alacritty ;;
+  *Ghostty*) omari-default-terminal ghostty ;;
+  *Kitty*) omari-default-terminal kitty ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_setup_default_editor_menu() {
+  local options=""
+  omari-cmd-present nvim && options="$options  Neovim"
+  omari-cmd-present code && options="${options:+$options\n}  VSCode"
+  omari-cmd-present zeditor && options="${options:+$options\n}  Zed"
+  omari-cmd-present vim && options="${options:+$options\n}  Vim"
+
+  local current=""
+  case "$(omari-default-editor)" in
+  nvim) current="  Neovim" ;;
+  code) current="  VSCode" ;;
+  zed | zeditor) current="  Zed" ;;
+  vim) current="  Vim" ;;
+  esac
+
+  case $(menu "Default Editor" "$options" "" "$current") in
+  *Neovim*) omari-default-editor nvim ;;
+  *VSCode*) omari-default-editor code ;;
+  *Zed*) omari-default-editor zed ;;
+  *Vim*) omari-default-editor vim ;;
+  *) show_setup_default_menu ;;
+  esac
+}
+
+show_setup_config_menu() {
+  case $(menu "Setup" "󰌧  Walker") in
+  *Walker*) open_in_editor ~/.config/walker/config.toml && omari-restart-walker ;;
+  *) show_setup_menu ;;
+  esac
+}
+
+show_install_menu() {
+  case $(menu "Install" "  Package\n  Web App\n  TUI\n  Service\n  Browser\n  Style\n󰵮  Development\n  Editor\n  Terminal") in
+  *Package*) terminal omari-pkg-install ;;
+  *Web*) present_terminal omari-webapp-install ;;
+  *TUI*) present_terminal omari-tui-install ;;
+  *Service*) show_install_service_menu ;;
+  *Browser*) show_install_browser_menu ;;
+  *Style*) show_install_style_menu ;;
+  *Development*) show_install_development_menu ;;
+  *Editor*) show_install_editor_menu ;;
+  *Terminal*) show_install_terminal_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_install_service_menu() {
+  case $(menu "Install" "  Bitwarden\n  Discord\n  LibreOffice\n  LocalSend\n  ObsStudio\n  Spotify\n  Tailscale") in
+  *Bitwarden*) install "Bitwarden" "bitwarden" ;;
+  *Discord*) present_terminal omari-install-discord ;;
+  *LibreOffice*) install "LibreOffice" "libreoffice" ;;
+  *LocalSend*) install "LocalSend" "localsend" ;;
+  *ObsStudio*) install "ObsStudio" "obs-studio" ;;
+  *Spotify*) present_terminal omari-install-spotify ;;
+  *Tailscale*) present_terminal omari-install-tailscale ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_browser_menu() {
+  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Firefox\n󰖟  Zen") in
+  *Chrome*) present_terminal "omari-install-browser chrome" ;;
+  *Edge*) present_terminal "omari-install-browser edge" ;;
+  *Brave*) present_terminal "omari-install-browser brave" ;;
+  *Firefox*) present_terminal "omari-install-browser firefox" ;;
+  *Zen*) present_terminal "omari-install-browser zen" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_style_menu() {
+  case $(menu "Install" "󰸌  Theme\n  Background\n  Font") in
+  *Theme*) present_terminal omari-theme-install ;;
+  *Background*) omari-theme-bg-install ;;
+  *Font*) show_install_font_menu ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_font_menu() {
+  case $(menu "Install" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts" "--width 350") in
+  *Cascadia*) install_font "Cascadia Mono" "cascadia-mono" "Cascadia Mono Nerd Font" ;;
+  *JetBrains*) install_font "JetBrains Mono" "jetbrains-mono" "JetBrains Mono" ;;
+  *iA*) install_font "iA Fonts" "iafonts" "iA Fonts Nerd Font" ;;
+  *Microsoft*) install_font "Microsoft Core Fonts" "mscore" "Microsoft Core Fonts" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_development_menu() {
+  case $(menu "Install" "󱘲  Databases\n󰫏  Ruby on Rails\n  JavaScript\n  Go\n  PHP\n  Python\n  Elixir\n  Zig\n  Rust\n  Java\n  .NET\n  OCaml\n  Clojure\n  Scala") in
+  *Databases*) show_install_databases_menu ;;
+  *Rails*) present_terminal "omari-install-dev-env ruby" ;;
+  *JavaScript*) show_install_javascript_menu ;;
+  *Go*) present_terminal "omari-install-dev-env go" ;;
+  *PHP*) present_terminal "omari-install-dev-env php" ;;
+  *Python*) present_terminal "omari-install-dev-env python" ;;
+  *Elixir*) show_install_elixir_menu ;;
+  *Zig*) present_terminal "omari-install-dev-env zig" ;;
+  *Rust*) present_terminal "omari-install-dev-env rust" ;;
+  *Java*) present_terminal "omari-install-dev-env java" ;;
+  *NET*) present_terminal "omari-install-dev-env dotnet" ;;
+  *OCaml*) present_terminal "omari-install-dev-env ocaml" ;;
+  *Clojure*) present_terminal "omari-install-dev-env clojure" ;;
+  *Scala*) present_terminal "omari-install-dev-env scala" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_databases_menu() {
+  case $(menu "Install Databases" "  MySQL\n  PostgreSQL\n  MariaDB\n  Redis\n  MongoDB\n󱘲  MSSQL") in
+  *MySQL*) present_terminal "omari-install-docker-dbs mysql" ;;
+  *PostgreSQL*) present_terminal "omari-install-docker-dbs postgresql" ;;
+  *MariaDB*) present_terminal "omari-install-docker-dbs mariadb" ;;
+  *Redis*) present_terminal "omari-install-docker-dbs redis" ;;
+  *MongoDB*) present_terminal "omari-install-docker-dbs mongodb" ;;
+  *MSSQL*) present_terminal "omari-install-docker-dbs mssql" ;;
+  *) show_install_development_menu ;;
+  esac
+}
+
+show_install_javascript_menu() {
+  case $(menu "Install" "  Node.js\n  Bun\n  Deno") in
+  *Node*) present_terminal "omari-install-dev-env node" ;;
+  *Bun*) present_terminal "omari-install-dev-env bun" ;;
+  *Deno*) present_terminal "omari-install-dev-env deno" ;;
+  *) show_install_development_menu ;;
+  esac
+}
+
+show_install_elixir_menu() {
+  case $(menu "Install" "  Elixir\n  Phoenix") in
+  *Elixir*) present_terminal "omari-install-dev-env elixir" ;;
+  *Phoenix*) present_terminal "omari-install-dev-env phoenix" ;;
+  *) show_install_development_menu ;;
+  esac
+}
+
+show_install_editor_menu() {
+  case $(menu "Install" "  VSCode\n  Zed") in
+  *VSCode*) present_terminal omari-install-vscode ;;
+  *Zed*) install "Zed" "zed" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_terminal_menu() {
+  case $(menu "Install" "  Alacritty\n  Ghostty\n  Kitty") in
+  *Alacritty*) install_terminal "alacritty" ;;
+  *Ghostty*) install_terminal "ghostty" ;;
+  *Kitty*) install_terminal "kitty" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_remove_menu() {
+  case $(menu "Remove" "  Package\n  Web App\n  TUI\n  Style\n  Browser\n󰵮  Development\n󰏓  Preinstalls") in
+  *Package*) terminal omari-pkg-remove ;;
+  *Web*) present_terminal omari-webapp-remove ;;
+  *TUI*) present_terminal omari-tui-remove ;;
+  *Style*) show_remove_style_menu ;;
+  *Browser*) show_remove_browser_menu ;;
+  *Development*) show_remove_development_menu ;;
+  *Preinstalls*) present_terminal omari-remove-preinstalls ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_remove_style_menu() {
+  case $(menu "Remove" "󰸌  Theme\n  Font") in
+  *Theme*) present_terminal omari-theme-remove ;;
+  *Font*) show_remove_font_menu ;;
+  *) show_remove_menu ;;
+  esac
+}
+
+show_remove_font_menu() {
+  case $(menu "Remove Font" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts" "--width 350") in
+  *Cascadia*) remove_font "Cascadia Mono" "cascadia-mono" ;;
+  *JetBrains*) remove_font "JetBrains Mono" "jetbrains-mono" ;;
+  *iA*) remove_font "iA Fonts" "iafonts" ;;
+  *Microsoft*) remove_font "Microsoft Core Fonts" "mscore" ;;
+  *) show_remove_menu ;;
+  esac
+}
+
+show_remove_browser_menu() {
+  case $(menu "Remove" "  Chrome\n  Edge\n  Brave\n  Firefox\n  Zen") in
+  *Chrome*) present_terminal "omari-remove-browser chrome" ;;
+  *Edge*) present_terminal "omari-remove-browser edge" ;;
+  *Brave*) present_terminal "omari-remove-browser brave" ;;
+  *Firefox*) present_terminal "omari-remove-browser firefox" ;;
+  *Zen*) present_terminal "omari-remove-browser zen" ;;
+  *) show_remove_menu ;;
+  esac
+}
+
+show_remove_development_menu() {
+  case $(menu "Remove Development Environment" "󰫏  Ruby on Rails\n  JavaScript\n  Go\n  PHP\n  Python\n  Elixir\n  Zig\n  Rust\n  Java\n  .NET\n  OCaml\n  Clojure\n  Scala") in
+  *Rails*) present_terminal "omari-remove-dev-env ruby" ;;
+  *JavaScript*) show_remove_javascript_menu ;;
+  *Go*) present_terminal "omari-remove-dev-env go" ;;
+  *PHP*) present_terminal "omari-remove-dev-env php" ;;
+  *Python*) present_terminal "omari-remove-dev-env python" ;;
+  *Elixir*) show_remove_elixir_menu ;;
+  *Zig*) present_terminal "omari-remove-dev-env zig" ;;
+  *Rust*) present_terminal "omari-remove-dev-env rust" ;;
+  *Java*) present_terminal "omari-remove-dev-env java" ;;
+  *NET*) present_terminal "omari-remove-dev-env dotnet" ;;
+  *OCaml*) present_terminal "omari-remove-dev-env ocaml" ;;
+  *Clojure*) present_terminal "omari-remove-dev-env clojure" ;;
+  *Scala*) present_terminal "omari-remove-dev-env scala" ;;
+  *) show_remove_menu ;;
+  esac
+}
+
+show_remove_javascript_menu() {
+  case $(menu "Remove JavaScript Environment" "  Node.js\n  Bun\n  Deno") in
+  *Node*) present_terminal "omari-remove-dev-env node" ;;
+  *Bun*) present_terminal "omari-remove-dev-env bun" ;;
+  *Deno*) present_terminal "omari-remove-dev-env deno" ;;
+  *) show_remove_development_menu ;;
+  esac
+}
+
+show_remove_elixir_menu() {
+  case $(menu "Remove Elixir Environment" "  Elixir\n  Phoenix") in
+  *Elixir*) present_terminal "omari-remove-dev-env elixir" ;;
+  *Phoenix*) present_terminal "omari-remove-dev-env phoenix" ;;
+  *) show_remove_development_menu ;;
+  esac
+}
+
+show_update_menu() {
+  local brand_name=$(omari-branding-name)
+
+  case $(menu "Update" "󰟢  $brand_name\n󰔫  Channel\n  Config\n󰸌  Themes\n  Process\n󰇅  Hardware\n  Firmware\n  Password") in
+  *$brand_name*) present_terminal omari-update ;;
+  *Channel*) show_update_channel_menu ;;
+  *Config*) show_update_config_menu ;;
+  *Themes*) present_terminal omari-theme-update ;;
+  *Process*) show_update_process_menu ;;
+  *Hardware*) show_update_hardware_menu ;;
+  *Firmware*) present_terminal omari-update-firmware ;;
+  *Password*) show_update_password_menu ;;
+  *) show_main_menu ;;
+  esac
+}
+
+show_update_channel_menu() {
+  case $(menu "Update channel" "🟢 Stable\n🔴 Dev") in
+  *Stable*) present_terminal "omari-channel-set stable" ;;
+  *Dev*) present_terminal "omari-channel-set dev" ;;
+  *) show_update_menu ;;
+  esac
+}
+
+show_update_config_menu() {
+  case $(menu "Use default config" "  Niri\n  Keybindings\n󱣴  Plymouth\n  Starship\n  Tmux\n󰌧  Walker") in
+  *Niri*) present_terminal omari-refresh-niri ;;
+  *Keybindings*) present_terminal omari-refresh-keybindings ;;
+  *Plymouth*) present_terminal omari-refresh-plymouth ;;
+  *Starship*) present_terminal omari-refresh-config starship.toml ;;
+  *Tmux*) present_terminal omari-refresh-tmux ;;
+  *Walker*) present_terminal omari-refresh-walker ;;
+  *) show_update_menu ;;
+  esac
+}
+
+show_update_process_menu() {
+  case $(menu "Restart" "󰌧  Walker") in
+  *Walker*) omari-restart-walker ;;
+  *) show_update_menu ;;
+  esac
+}
+
+show_update_hardware_menu() {
+  case $(menu "Restart" "  Audio\n󰂯  Bluetooth") in
+  *Audio*) present_terminal omari-restart-pipewire ;;
+  *Bluetooth*) present_terminal omari-restart-bluetooth ;;
+  *) show_update_menu ;;
+  esac
+}
+
+show_update_password_menu() {
+  case $(menu "Update Password" "  User") in
+  *User*) present_terminal passwd ;;
+  *) show_update_menu ;;
+  esac
+}
+
+show_about() {
+  omari-launch-about
+}
+
+show_system_menu() {
+  local options="󰌾  Lock"
+  [[ ! -f ~/.local/state/omari/toggles/suspend-off ]] && options="$options\n󰒲  Suspend"
+  options="$options\n󰌾  Logout\n󰜉  Restart\n󰐥  Shutdown"
+
+  case $(menu "System" "$options") in
+  *Lock*) omari-system-lock ;;
+  *Suspend*) systemctl suspend ;;
+  *Logout*) omari-system-logout ;;
+  *Restart*) omari-system-reboot ;;
+  *Shutdown*) omari-system-shutdown ;;
+  *) back_to show_main_menu ;;
+  esac
+}
+
+show_main_menu() {
+  go_to_menu "$(menu "Go" "󰀻  Apps\n󰧑  Learn\n󱓞  Trigger\n  Style\n  Setup\n󰉉  Install\n󰭌  Remove\n󰑐  Update\n  About\n󰤆  System")"
+}
+
+go_to_menu() {
+  case "${1,,}" in
+  *apps*) walker -p "Launch..." ;;
+  *learn*) show_learn_menu ;;
+  *trigger*) show_trigger_menu ;;
+  *toggle*) show_toggle_menu ;;
+  *share*) show_share_menu ;;
+  *reminder-set*) show_custom_reminder_input ;;
+  *reminder*) show_reminder_menu ;;
+  *background*) show_background_menu ;;
+  *style*) show_style_menu ;;
+  *theme*) show_theme_menu ;;
+  *setup*) show_setup_menu ;;
+  *power*) show_setup_power_menu ;;
+  *install*) show_install_menu ;;
+  *remove*) show_remove_menu ;;
+  *update*) show_update_menu ;;
+  *about*) show_about ;;
+  *system*) show_system_menu ;;
+  esac
+}
+
+# Allow user extensions and overrides
+USER_EXTENSIONS="$HOME/.config/omari/extensions/menu.sh"
+[[ -f $USER_EXTENSIONS ]] && source "$USER_EXTENSIONS"
+
+toggle_existing_menu
+
+if [[ -n "$1" ]]; then
+  BACK_TO_EXIT=true
+  go_to_menu "$1"
+else
+  show_main_menu
+fi

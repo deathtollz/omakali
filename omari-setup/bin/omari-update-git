@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Pull the latest Omari git changes.
+
+set -e
+
+echo -e "\e[32mUpdate Omari\e[0m"
+
+git -C $OMARI_PATH pull --autostash
+git -C $OMARI_PATH --no-pager diff --check || git -C $OMARI_PATH reset --merge

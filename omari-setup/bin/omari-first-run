@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# omari:summary=Finish the installation of Omari with items that can only be done after logging in.
+# omari:requires-sudo=true
+
+set -e
+
+OMARI_PATH="$HOME/.local/share/omari"
+FIRST_RUN_MODE=~/.local/state/omari/first-run.mode
+
+if [[ -f $FIRST_RUN_MODE ]]; then
+  bash "$OMARI_PATH/install/first-run/firewall.sh"
+  bash "$OMARI_PATH/install/first-run/gnome-theme.sh"
+  bash "$OMARI_PATH/install/first-run/elephant.sh"
+  sudo rm -f /etc/sudoers.d/first-run
+
+  bash "$OMARI_PATH/install/first-run/dns-resolver.sh"
+
+  bash "$OMARI_PATH/install/first-run/welcome.sh"
+  bash "$OMARI_PATH/install/first-run/wifi.sh"
+  rm -f "$FIRST_RUN_MODE"
+fi
+

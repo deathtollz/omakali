@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omari:summary=Launch the default editor as determined by $EDITOR (or nvim if missing).
+# omari:args=<path>
+
+case "${EDITOR:-nvim}" in
+nvim | vim | nano | micro | hx | helix | fresh)
+  exec "$TERMINAL" -e "$EDITOR" "$@"
+  ;;
+*)
+  exec "$EDITOR" "$@"
+  ;;
+esac

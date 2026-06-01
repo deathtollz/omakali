@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=Returns a list of all the available power profiles on the system.
+
+powerprofilesctl list |
+  grep -oP '^\s*\*?\s*\K[a-z-]+(?=:)'

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=Launch a TUI command in the default terminal.
+# omari:args=<command> [args...]
+
+exec setsid xdg-terminal-exec --app-id=org.omari.$(basename $1) -e "$1" "${@:2}"

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# omari:summary=Close all open windows
+
+# Close all open windows
+niri msg --json windows |
+  jq -r '
+    .[]
+    | select(.app_id != "org.omari.niri")
+    | .id
+  ' |
+  while IFS= read -r id; do
+    niri msg action close-window --id "$id"
+  done
+
+# Move to workspace 1
+niri msg action switch-workspace --workspace 1

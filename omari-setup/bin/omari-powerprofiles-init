@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Set the correct power profile on boot based on current AC/battery state.
+
+if omari-battery-present && ! omari-ac-present; then
+  omari-powerprofiles-set battery
+else
+  omari-powerprofiles-set ac
+fi

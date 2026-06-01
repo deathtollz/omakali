@@ -1,0 +1,13 @@
+# History control
+shopt -s histappend
+HISTCONTROL=ignoreboth
+HISTSIZE=32768
+HISTFILESIZE="${HISTSIZE}"
+
+# Autocompletion
+source /usr/share/bash-completion/bash_completion
+
+# Set complete path
+export OMARI_PATH="$HOME/.local/share/omari"
+export PATH="$OMARI_PATH/bin:$PATH"
+set +h

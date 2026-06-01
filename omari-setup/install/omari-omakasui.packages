@@ -1,0 +1,19 @@
+# Omakasui-sourced packages installed separately after the Kali base is stable.
+# These come from https://packages.omakasui.org and https://core.omakasui.org
+# Installed in install/packaging/omakasui.sh
+
+bluetui
+elephant
+# elephant-all pulls in every elephant provider plugin (desktopapplications,
+# calc, menus, runner, symbols, websearch, files, ...). Without the providers
+# the walker launcher (Mod+Space) opens but returns "No Results".
+elephant-all
+font-cascadia-mono-nf
+impala
+lazydocker
+localsend
+omari-nvim
+starship
+swayosd
+walker
+wiremix

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=Overwrite the user tmux config with the Omari default and reload tmux.
+
+omari-refresh-config tmux/tmux.conf
+omari-restart-tmux

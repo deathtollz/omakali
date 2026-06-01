@@ -1,0 +1,6 @@
+[SddmGreeterTheme]
+Name=Omari
+Description=Minimal terminal-style login theme
+Author=Omari
+Type=sddm-theme
+Version=1.0
