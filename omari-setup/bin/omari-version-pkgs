@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# omari:summary=Print how many APT packages can be upgraded (cached 1h) for the fastfetch panel.
+# omari:examples=omari version pkgs
+
+set -euo pipefail
+
+cache="$HOME/.cache/omari/version-pkgs"
+mkdir -p "$(dirname "$cache")"
+
+# fastfetch runs this on every terminal launch — serve a cached value for an hour.
+if [[ -f "$cache" ]] && (( $(date +%s) - $(stat -c %Y "$cache" 2>/dev/null || echo 0) < 3600 )); then
+  cat "$cache"
+  exit 0
+fi
+
+# Simulated upgrade needs no root and no lock; count the packages to be installed.
+count="$(apt-get -s -o Debug::NoLocking=true upgrade 2>/dev/null | grep -c '^Inst ' || true)"
+count="${count:-0}"
+
+if (( count > 0 )); then
+  msg="$count available"
+else
+  msg="Up to date"
+fi
+
+printf '%s\n' "$msg" | tee "$cache"

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# omari:summary=OCR a screen region and copy the recognised text to the clipboard.
+# omari:examples=omari capture text-extraction
+
+set -euo pipefail
+
+command -v tesseract >/dev/null 2>&1 || {
+  omari-notification-send -g "󰊄" "Text extraction" "tesseract-ocr is not installed" 2>/dev/null || \
+    notify-send "Text extraction" "tesseract-ocr is not installed" 2>/dev/null || true
+  exit 1
+}
+
+geom="$(slurp 2>/dev/null)" || exit 0
+[[ -n "$geom" ]] || exit 0
+
+tmp="$(mktemp --suffix=.png)"
+trap 'rm -f "$tmp"' EXIT
+grim -g "$geom" "$tmp"
+
+text="$(tesseract "$tmp" - 2>/dev/null)"
+if [[ -z "${text//[[:space:]]/}" ]]; then
+  omari-notification-send -g "󰊄" "Text extraction" "No text detected" 2>/dev/null || \
+    notify-send "Text extraction" "No text detected" 2>/dev/null || true
+  exit 0
+fi
+
+printf '%s' "$text" | wl-copy
+omari-notification-send -g "󰊄" "Text extraction" "Copied to clipboard" 2>/dev/null || \
+  notify-send "Text extraction" "Copied to clipboard" 2>/dev/null || true

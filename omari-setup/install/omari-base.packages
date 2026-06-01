@@ -89,6 +89,8 @@ swaybg
 swayidle
 
 tar
+tesseract-ocr
+tesseract-ocr-eng
 
 ufw
 unzip
@@ -98,6 +100,7 @@ wget
 wf-recorder
 wireplumber
 wl-clipboard
+wlsunset
 cliphist
 wtype
 

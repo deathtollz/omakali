@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# omari:summary=One-time first-boot finalization; a no-op on normal logins.
+# Spawned at startup from autostart.kdl. The standalone installer performs all
+# setup itself, so this only does work on images that explicitly set first-run
+# mode (e.g. the Omari Kali ISO), then removes its own state so it never runs again.
+
+set -euo pipefail
+
+marker="$HOME/.local/state/omari/first-run.mode"
+[[ -f "$marker" ]] || exit 0   # not in first-run mode — nothing to do
+
+# Clear first-run state so this never runs again.
+rm -f "$marker"
+
+# These only succeed on systems where first-run-mode.sh provisioned the
+# NOPASSWD sudoers rule; -n guarantees we never block on a password prompt.
+sudo -n rm -f /etc/sudoers.d/first-run 2>/dev/null || true
+systemctl --user disable omari-first-run.service >/dev/null 2>&1 || true
+
+exit 0

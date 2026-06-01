@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# omari:summary=Toggle automatic locking/idle (hypridle) on and off.
+# omari:examples=omari toggle idle
+
+set -euo pipefail
+
+if pgrep -x hypridle >/dev/null; then
+  pkill -x hypridle || true
+  omari-notification-send -g "󰒲" "Idle lock" "Disabled — the screen will not auto-lock" 2>/dev/null || \
+    notify-send "Idle lock" "Disabled" 2>/dev/null || true
+else
+  hypridle >/dev/null 2>&1 &
+  omari-notification-send -g "󰒲" "Idle lock" "Enabled" 2>/dev/null || \
+    notify-send "Idle lock" "Enabled" 2>/dev/null || true
+fi

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# omari:summary=Toggle a screen recording (press once to start, again to stop).
+# omari:args=[--region] [--with-desktop-audio] [--portal]
+# omari:examples=omari capture screenrecording | omari capture screenrecording --region --with-desktop-audio
+
+set -euo pipefail
+
+# Second invocation stops the running recording (wf-recorder flushes on SIGINT).
+if pgrep -x wf-recorder >/dev/null; then
+  pkill -INT -x wf-recorder
+  omari-notification-send -g "󰕧" "Screen recording" "Saved" 2>/dev/null || \
+    notify-send "Screen recording" "Saved" 2>/dev/null || true
+  exit 0
+fi
+
+region=false
+audio=false
+for arg in "$@"; do
+  case "$arg" in
+    --region) region=true ;;
+    --with-desktop-audio | --audio) audio=true ;;
+    --portal) : ;;   # accepted for binding compatibility; wf-recorder records directly
+    *) : ;;
+  esac
+done
+
+rec_dir="$(xdg-user-dir VIDEOS 2>/dev/null || echo "$HOME/Videos")/Screenrecordings"
+mkdir -p "$rec_dir"
+file="$rec_dir/screenrecording-$(date +%Y%m%d-%H%M%S).mp4"
+
+args=()
+if $region; then
+  geom="$(slurp 2>/dev/null)" || exit 0
+  [[ -n "$geom" ]] || exit 0
+  args+=(-g "$geom")
+else
+  name="$(niri msg --json focused-output 2>/dev/null | jq -r '.name // empty')"
+  [[ -n "$name" ]] && args+=(-o "$name")
+fi
+
+if $audio; then
+  # Capture the default sink monitor (desktop audio) via PipeWire/PulseAudio.
+  monitor="$(pactl get-default-sink 2>/dev/null).monitor"
+  if [[ "$monitor" != ".monitor" ]]; then
+    args+=(--audio="$monitor")
+  else
+    args+=(--audio)
+  fi
+fi
+
+omari-notification-send -g "󰕧" "Screen recording" "Recording started — press the key again to stop" 2>/dev/null || \
+  notify-send "Screen recording" "Recording started" 2>/dev/null || true
+
+exec wf-recorder "${args[@]}" -f "$file" >/dev/null 2>&1

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# omari:summary=Enable/disable the touchpad by toggling `off` in the Niri input config (live-reloaded).
+# omari:args=[on|off|toggle]
+# omari:examples=omari toggle touchpad | omari toggle touchpad off
+
+set -euo pipefail
+
+cfg="$HOME/.config/niri/input.kdl"
+[[ -f "$cfg" ]] || { echo "Niri input config not found: $cfg" >&2; exit 1; }
+
+grep -qE 'touchpad[[:space:]]*\{' "$cfg" || { echo "No touchpad block in $cfg" >&2; exit 1; }
+
+# Is the touchpad currently disabled (an `off` line inside the touchpad block)?
+is_off="$(awk '
+  /touchpad[[:space:]]*\{/ { inblk=1 }
+  inblk && /^[[:space:]]*off[[:space:]]*$/ { found=1 }
+  inblk && /\}/ { inblk=0 }
+  END { print (found ? 1 : 0) }
+' "$cfg")"
+
+action="${1:-toggle}"
+case "$action" in
+  on)  want_off=0 ;;
+  off) want_off=1 ;;
+  *)   want_off=$([[ "$is_off" -eq 1 ]] && echo 0 || echo 1) ;;
+esac
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+if [[ "$want_off" -eq 1 && "$is_off" -eq 0 ]]; then
+  awk '
+    /touchpad[[:space:]]*\{/ && !done { print; print "        off"; done=1; next }
+    { print }
+  ' "$cfg" >"$tmp"
+  mv "$tmp" "$cfg"
+  msg="Disabled"
+elif [[ "$want_off" -eq 0 && "$is_off" -eq 1 ]]; then
+  awk '
+    /touchpad[[:space:]]*\{/ { inblk=1 }
+    inblk && /^[[:space:]]*off[[:space:]]*$/ { next }
+    inblk && /\}/ { inblk=0 }
+    { print }
+  ' "$cfg" >"$tmp"
+  mv "$tmp" "$cfg"
+  msg="Enabled"
+else
+  msg=$([[ "$want_off" -eq 1 ]] && echo "Disabled" || echo "Enabled")
+fi
+
+# Niri watches its config and live-reloads; nudge a validate to surface errors.
+niri validate -c "$HOME/.config/niri/config.kdl" >/dev/null 2>&1 || true
+
+omari-notification-send -g "󰟸" "Touchpad" "$msg" 2>/dev/null || \
+  notify-send "Touchpad" "$msg" 2>/dev/null || true

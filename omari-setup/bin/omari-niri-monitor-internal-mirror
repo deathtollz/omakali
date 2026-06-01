@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# omari:summary=Mirror the internal laptop display to an external one (best effort).
+# omari:args=[toggle|on|off]
+# omari:examples=omari niri monitor internal-mirror toggle
+
+set -euo pipefail
+
+# niri (as of v26.04) exposes no output "mirror" action over IPC
+# (only off/on/mode/scale/transform/position/vrr), so true framebuffer
+# mirroring is not yet possible. Surface that clearly instead of silently
+# doing nothing, and point at the supported alternative.
+omari-notification-send -g "󰍺" "Display mirroring" \
+  "Niri does not support mirroring yet. Use Mod+Ctrl+Delete to switch to a single display." 2>/dev/null || \
+  notify-send "Display mirroring" "Not supported by Niri yet (use Mod+Ctrl+Delete for single-display)." 2>/dev/null || true
+
+exit 0

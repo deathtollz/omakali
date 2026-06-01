@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# omari:summary=Cycle the focused output's scale through common values.
+# omari:args=[--reverse]
+# omari:examples=omari niri monitor scaling-cycle | omari niri monitor scaling-cycle --reverse
+
+set -euo pipefail
+
+reverse=false
+[[ "${1:-}" == "--reverse" ]] && reverse=true
+
+scales=(1.0 1.25 1.5 1.75 2.0)
+
+info="$(niri msg --json focused-output 2>/dev/null)"
+name="$(jq -r '.name // empty' <<<"$info")"
+[[ -n "$name" ]] || { echo "No focused output" >&2; exit 1; }
+
+# Current scale lives under .logical.scale on recent niri; fall back to 1.0.
+cur="$(jq -r '(.logical.scale // .scale // 1.0)' <<<"$info")"
+
+# Find the index of the closest current scale.
+idx=0
+best=0; bestdiff=99
+for i in "${!scales[@]}"; do
+  diff="$(awk -v a="${scales[$i]}" -v b="$cur" 'BEGIN{d=a-b; if(d<0)d=-d; print d}')"
+  if awk -v d="$diff" -v bd="$bestdiff" 'BEGIN{exit !(d<bd)}'; then
+    bestdiff="$diff"; best="$i"
+  fi
+done
+idx="$best"
+
+n="${#scales[@]}"
+if $reverse; then
+  next=$(( (idx - 1 + n) % n ))
+else
+  next=$(( (idx + 1) % n ))
+fi
+
+target="${scales[$next]}"
+niri msg output "$name" scale "$target"
+
+omari-notification-send -g "󰍹" "Display scale" "$name → ${target}x" 2>/dev/null || \
+  notify-send "Display scale" "$name ${target}x" 2>/dev/null || true

@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# omari:summary=Turn the internal laptop display (eDP/LVDS/DSI) on, off, or toggle it.
+# omari:args=[toggle|on|off]
+# omari:examples=omari niri monitor internal toggle
+
+set -euo pipefail
+
+# Find the internal panel by connector name.
+internal="$(niri msg --json outputs 2>/dev/null \
+  | jq -r 'if type=="object" then (.[].name) else (.[].name) end' 2>/dev/null \
+  | grep -iE '^(eDP|LVDS|DSI)' | head -1)"
+
+if [[ -z "$internal" ]]; then
+  omari-notification-send -g "󰍹" "Internal display" "No internal panel found" 2>/dev/null || \
+    notify-send "Internal display" "No internal panel found" 2>/dev/null || true
+  exit 1
+fi
+
+state_dir="$HOME/.local/state/omari"
+mkdir -p "$state_dir"
+flag="$state_dir/internal-display-off"
+
+action="${1:-toggle}"
+case "$action" in
+  on)  want_off=0 ;;
+  off) want_off=1 ;;
+  *)   want_off=$([[ -f "$flag" ]] && echo 0 || echo 1) ;;
+esac
+
+if [[ "$want_off" -eq 1 ]]; then
+  niri msg output "$internal" off
+  touch "$flag"
+  msg="$internal off"
+else
+  niri msg output "$internal" on
+  rm -f "$flag"
+  msg="$internal on"
+fi
+
+omari-notification-send -g "󰍹" "Internal display" "$msg" 2>/dev/null || \
+  notify-send "Internal display" "$msg" 2>/dev/null || true

@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# omari:summary=Print a short current-weather summary (via wttr.in), cached for 15 minutes.
+# omari:examples=omari weather status
+
+set -euo pipefail
+
+cache="$HOME/.cache/omari/weather"
+mkdir -p "$(dirname "$cache")"
+
+# Serve from cache if it is fresher than 15 minutes (keybind can be spammed).
+if [[ -f "$cache" ]] && (( $(date +%s) - $(stat -c %Y "$cache" 2>/dev/null || echo 0) < 900 )); then
+  cat "$cache"
+  exit 0
+fi
+
+loc="${OMARI_WEATHER_LOCATION:-}"   # blank => wttr.in geolocates by IP
+out="$(curl -fsS --max-time 6 "https://wttr.in/${loc}?format=%l:+%c+%t+(feels+%f)+%w" 2>/dev/null || true)"
+
+if [[ -z "$out" || "$out" == *"Unknown location"* || "$out" == *"<html"* ]]; then
+  if [[ -f "$cache" ]]; then
+    cat "$cache"
+  else
+    echo "Weather unavailable"
+  fi
+  exit 0
+fi
+
+printf '%s\n' "$out" | tee "$cache"
