@@ -13,11 +13,23 @@ user's home directory.
 ## Quick start
 
 On a Kali (or Debian) host, **as your normal user** (not root — it `sudo`s where
-needed):
+needed).
+
+### One-liner (curl)
 
 ```console
-git clone https://github.com/deathtollz/omari-niri-installer.git
-cd omari-niri-installer
+bash <(curl -fsSL https://raw.githubusercontent.com/deathtollz/omakali/main/boot.sh)
+```
+
+Pass installer flags after the process substitution, e.g.
+`bash <(curl -fsSL .../boot.sh) --autologin`. If your shell lacks process
+substitution, use `curl -fsSL .../boot.sh | bash -s -- --autologin`.
+
+### Manual (git clone)
+
+```console
+git clone https://github.com/deathtollz/omakali.git
+cd omakali
 ./install-omari-niri.sh
 ```
 

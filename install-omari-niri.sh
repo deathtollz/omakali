@@ -109,7 +109,15 @@ info "Autologin: $([[ $WANT_AUTOLOGIN -eq 1 ]] && echo yes || echo no)   /etc/sk
 
 if [[ $ASSUME_YES -ne 1 ]]; then
   echo
-  read -r -p "Proceed with installing Niri + Omari for '$(id -un)'? [y/N] " reply
+  reply=""
+  if [[ -r /dev/tty ]]; then
+    read -r -p "Proceed with installing Niri + Omari for '$(id -un)'? [y/N] " reply </dev/tty || reply=""
+  elif [[ -t 0 ]]; then
+    read -r -p "Proceed with installing Niri + Omari for '$(id -un)'? [y/N] " reply || reply=""
+  else
+    info "non-interactive (no terminal); proceeding without confirmation."
+    reply="y"
+  fi
   [[ "$reply" =~ ^[Yy]$ ]] || die "aborted by user."
 fi
 
