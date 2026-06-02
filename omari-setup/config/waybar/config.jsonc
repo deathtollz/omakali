@@ -5,14 +5,20 @@
   "spacing": 0,
   "height": 26,
   "modules-left": ["custom/omari", "niri/workspaces"],
-  "modules-center": ["clock", "custom/notification-silencing-indicator"],
+  "modules-center": [
+    "clock",
+    "custom/idle-indicator",
+    "custom/notification-silencing-indicator",
+    "custom/screenrecording-indicator",
+  ],
   "modules-right": [
-    "custom/screenshot",
     "group/tray-expander",
+    "custom/screenshot",
     "bluetooth",
     "network",
     "pulseaudio",
     "cpu",
+    "memory",
     "battery"
   ],
   "niri/workspaces": {
@@ -44,6 +50,13 @@
     "format": "󰍛",
     "on-click": "omari-launch-or-focus-tui btop",
     "on-click-right": "alacritty",
+  },
+  "memory": {
+    "format": "{used:0.1f}G",
+    "interval": 3,
+    "on-click": "omari-launch-or-focus-tui btop",
+    "on-click-right": "alacritty",
+    "tooltip-format": "RAM: {used:0.1f}G / {total:0.1f}G ({percentage}%)\nSwap: {swapUsed:0.1f}G / {swapTotal:0.1f}G ({swapPercentage}%)",
   },
   "clock": {
     "format": "{:L%A %H:%M}",
@@ -77,7 +90,7 @@
     "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
     "interval": 5,
     "on-click": "omari-menu power",
-    "on-click-right": "notify-send -u low \"$(omari-battery-status)\"",
+    "on-click-right": "omari-menu battery",
     "states": {
       "warning": 20,
       "critical": 10,
@@ -111,26 +124,30 @@
       "transition-duration": 600,
       "children-class": "tray-group-item",
     },
-    "modules": ["custom/expand-icon", "tray"],
-  },
-  "custom/expand-icon": {
-    "format": "◀",
-    "tooltip": false,
-    "on-scroll-up": "",
-    "on-scroll-down": "",
-    "on-scroll-left": "",
-    "on-scroll-right": "",
+    "modules": ["tray"],
   },
   "custom/screenshot": {
-    "format": "",
+    "format": "",
+    "tooltip-format": "Screenshot",
     "on-click": "omari-capture-screenshot",
     "on-click-right": "omari-capture-screenrecording --portal --with-desktop-audio",
-    "tooltip-format": "Screenshot (L-click)\nScreen Record (R-click)",
+  },
+  "custom/idle-indicator": {
+    "on-click": "omari-toggle-idle",
+    "exec": "$OMARI_PATH/default/waybar/indicators/idle.sh",
+    "signal": 9,
+    "return-type": "json",
   },
   "custom/notification-silencing-indicator": {
     "on-click": "omari-toggle-notification-silencing",
     "exec": "$OMARI_PATH/default/waybar/indicators/notification-silencing.sh",
     "signal": 10,
+    "return-type": "json",
+  },
+  "custom/screenrecording-indicator": {
+    "on-click": "omari-capture-screenrecording",
+    "exec": "$OMARI_PATH/default/waybar/indicators/screen-recording.sh",
+    "signal": 8,
     "return-type": "json",
   },
   "tray": {

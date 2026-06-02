@@ -12,17 +12,17 @@
 }
 
 .modules-left {
-  margin-left: 8px;
+  margin-left: 5px;
 }
 
 .modules-right {
-  margin-right: 8px;
+  margin-right: 5px;
 }
 
 #workspaces button {
   all: initial;
   padding: 0 6px;
-  margin: 0 1.5px;
+  margin: 0 2.5px;
   min-width: 9px;
 }
 
@@ -32,16 +32,25 @@
 
 #cpu,
 #battery,
+#memory,
 #pulseaudio,
-#custom-omari,
+#custom-screenshot,
 #custom-update {
   min-width: 12px;
   margin: 0 7.5px;
 }
 
 #custom-omari {
-  font-size: 14px;
-  margin: 0 2px 0 7.5px;
+  font-size: 20px;
+  margin: 0 0 0 7.5px;
+}
+
+#cpu {
+  margin-right: 8px;
+}
+
+#battery {
+  margin-left: 5px;
 }
 
 #tray {
@@ -52,12 +61,12 @@
   margin-right: 17px;
 }
 
-#network {
-  margin-right: 13px;
+#custom-screenshot {
+  margin-right: 16px;
 }
 
-#custom-expand-icon {
-  margin-right: 4px;
+#network {
+  margin-right: 13px;
 }
 
 tooltip {
@@ -96,10 +105,21 @@ tooltip {
   margin-right: 0;
   font-size: 10px;
   padding-bottom: 1px;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 
 #custom-screenrecording-indicator.active {
-  color: #a55555;
+  color: @foreground;
+  animation-name: blink-recording;
+  animation-duration: 0.7s;
+}
+
+@keyframes blink-recording {
+  to {
+    color: @background;
+  }
 }
 
 #custom-idle-indicator.active,
@@ -126,8 +146,12 @@ tooltip {
 .right #cpu,
 .left #battery,
 .right #battery,
+.left #memory,
+.right #memory,
 .left #pulseaudio,
 .right #pulseaudio,
+.left #custom-screenshot,
+.right #custom-screenshot,
 .left #custom-omari,
 .right #custom-omari,
 .left #custom-update,

@@ -29,6 +29,17 @@ iafonts)
 cascadia-mono)
   omari-pkg-add fonts-cascadia-mono-nf
   ;;
+iosevka-nerd)
+  if [[ ! -d ~/.local/share/fonts/IosevkaNerd ]]; then
+    echo "Downloading Iosevka Nerd Font..."
+    mkdir -p /tmp/omari-font-iosevka
+    curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/Iosevka.zip" -o /tmp/omari-font-iosevka/Iosevka.zip
+    unzip -q -o /tmp/omari-font-iosevka/Iosevka.zip -d /tmp/omari-font-iosevka/
+    mkdir -p ~/.local/share/fonts/IosevkaNerd
+    mv /tmp/omari-font-iosevka/*.ttf ~/.local/share/fonts/IosevkaNerd/ 2>/dev/null
+    rm -rf /tmp/omari-font-iosevka
+  fi
+  ;;
 mscore)
   omari-pkg-add ttf-mscorefonts-installer
   ;;
