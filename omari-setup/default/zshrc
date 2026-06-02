@@ -1,0 +1,9 @@
+# Omari shell integration (sourced from .zshrc)
+export OMARI_PATH="$HOME/.local/share/omari"
+export PATH="$OMARI_PATH/bin:/usr/local/bin:/usr/bin:/bin:$HOME/.local/bin:$PATH"
+
+# Run fastfetch once per terminal session
+if [[ -z "${OMARI_FASTFETCH_DONE:-}" ]] && command -v fastfetch &>/dev/null; then
+  export OMARI_FASTFETCH_DONE=1
+  fastfetch
+fi
