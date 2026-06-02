@@ -6,7 +6,7 @@
 set -e
 
 OMARI_PATH="$HOME/.local/share/omari"
-FIRST_RUN_MODE=~/.local/state/omari/first-run.mode
+FIRST_RUN_MODE="$HOME/.local/state/omari/first-run.mode"
 
 if [[ -f $FIRST_RUN_MODE ]]; then
   bash "$OMARI_PATH/install/first-run/firewall.sh"

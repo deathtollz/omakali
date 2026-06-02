@@ -1,11 +1,11 @@
-run_logged $OMARI_INSTALL/packaging/base.sh
-run_logged $OMARI_INSTALL/packaging/omakasui.sh
-run_logged $OMARI_INSTALL/packaging/flathub.sh
-run_logged $OMARI_INSTALL/packaging/pipx.sh
-run_logged $OMARI_INSTALL/packaging/fonts.sh
-run_logged $OMARI_INSTALL/packaging/npm.sh
-run_logged $OMARI_INSTALL/packaging/nvim.sh
-run_logged $OMARI_INSTALL/packaging/docker.sh
-run_logged $OMARI_INSTALL/packaging/mise.sh
-run_logged $OMARI_INSTALL/packaging/icons.sh
-run_logged $OMARI_INSTALL/packaging/tuis.sh
+run_logged "$OMARI_INSTALL/packaging/base.sh"
+run_logged "$OMARI_INSTALL/packaging/omakasui.sh"
+run_logged "$OMARI_INSTALL/packaging/flathub.sh"
+# run_logged "$OMARI_INSTALL/packaging/pipx.sh"  # not yet implemented
+run_logged "$OMARI_INSTALL/packaging/fonts.sh"
+run_logged "$OMARI_INSTALL/packaging/npm.sh"
+run_logged "$OMARI_INSTALL/packaging/nvim.sh"
+run_logged "$OMARI_INSTALL/packaging/docker.sh"
+run_logged "$OMARI_INSTALL/packaging/mise.sh"
+run_logged "$OMARI_INSTALL/packaging/icons.sh"
+run_logged "$OMARI_INSTALL/packaging/tuis.sh"

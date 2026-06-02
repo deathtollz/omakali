@@ -35,4 +35,4 @@ if ! git clone "$REPO_URL" "$THEME_PATH"; then
 fi
 
 # Apply the new theme with omari-theme-set
-omari-theme-set $THEME_NAME
+omari-theme-set "$THEME_NAME"

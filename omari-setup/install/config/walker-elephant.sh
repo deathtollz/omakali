@@ -1,10 +1,10 @@
 # Ensure Walker service is started automatically on boot
-mkdir -p ~/.config/autostart/
-cp $OMARI_PATH/default/walker/walker.desktop ~/.config/autostart/
+mkdir -p "$HOME/.config/autostart/"
+cp "$OMARI_PATH/default/walker/walker.desktop" "$HOME/.config/autostart/"
 
 # And is restarted if it crashes or is killed
-mkdir -p ~/.config/systemd/user/app-walker@autostart.service.d/
-cp $OMARI_PATH/default/walker/restart.conf ~/.config/systemd/user/app-walker@autostart.service.d/restart.conf
+mkdir -p "$HOME/.config/systemd/user/app-walker@autostart.service.d/"
+cp "$OMARI_PATH/default/walker/restart.conf" "$HOME/.config/systemd/user/app-walker@autostart.service.d/restart.conf"
 
 # Create apt hook to restart walker after updates
 sudo mkdir -p /etc/apt/apt.conf.d
@@ -15,6 +15,6 @@ DPkg::Post-Invoke {
 EOF
 
 # Link the visual theme menu config
-mkdir -p ~/.config/elephant/menus
-ln -snf $OMARI_PATH/default/elephant/omari_themes.lua ~/.config/elephant/menus/omari_themes.lua
-ln -snf $OMARI_PATH/default/elephant/omari_background_selector.lua ~/.config/elephant/menus/omari_background_selector.lua
+mkdir -p "$HOME/.config/elephant/menus"
+ln -snf "$OMARI_PATH/default/elephant/omari_themes.lua" "$HOME/.config/elephant/menus/omari_themes.lua"
+ln -snf "$OMARI_PATH/default/elephant/omari_background_selector.lua" "$HOME/.config/elephant/menus/omari_background_selector.lua"

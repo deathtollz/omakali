@@ -1,3 +1,3 @@
 # Allow the user to change the branding
-mkdir -p ~/.config/omari/branding
-cp ~/.local/share/omari/brand ~/.config/omari/branding/brand
+mkdir -p "$HOME/.config/omari/branding"
+cp "$HOME/.local/share/omari/brand" "$HOME/.config/omari/branding/brand"

@@ -12,7 +12,7 @@
     "network",
     "pulseaudio",
     "cpu",
-    "battery",
+    "battery"
   ],
   "niri/workspaces": {
     "on-click": "activate",

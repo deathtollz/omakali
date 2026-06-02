@@ -173,7 +173,15 @@ bash "$OMARI_INSTALL/packaging/omakasui.sh"
 sudo rm -f /etc/apt/apt.conf.d/99restart-walker
 
 # ---------------------------------------------------------------------------
-# 6. Build and install Niri from source (mandatory)
+# 6. Deploy profile.d script for all login shells (so niri keybinds
+#    can find omari-launch-walker etc. via systemd import-environment).
+# ---------------------------------------------------------------------------
+step "Deploying /etc/profile.d/omari.sh for login-shell PATH"
+sudo install -d /etc/profile.d
+sudo cp "$OMARI_INSTALL/profile.d/omari.sh" /etc/profile.d/omari.sh
+
+# ---------------------------------------------------------------------------
+# 7. Build and install Niri from source (mandatory)
 # ---------------------------------------------------------------------------
 step "Building Niri from source (this can take several minutes)"
 if [[ -x /usr/bin/niri ]]; then
@@ -185,7 +193,7 @@ bash "$OMARI_INSTALL/packaging/niri-build.sh"
 info "Niri installed: $(/usr/bin/niri --version 2>/dev/null || echo built)"
 
 # ---------------------------------------------------------------------------
-# 7. De-duplicate session daemons
+# 8. De-duplicate session daemons
 # ---------------------------------------------------------------------------
 # Kali/Debian's waybar, mako-notifier and hypridle packages ship *enabled*
 # systemd user services. Omari already starts these from niri's autostart.kdl,
@@ -198,7 +206,7 @@ for unit in waybar.service mako.service hypridle.service; do
 done
 
 # ---------------------------------------------------------------------------
-# 8. Lay down the Omari configuration into the user's home
+# 9. Lay down the Omari configuration into the user's home
 # ---------------------------------------------------------------------------
 # Mirrors the /etc/skel population from the ISO hook, but writes into the
 # invoking user's $HOME so it takes effect immediately on next login.
@@ -282,7 +290,7 @@ for ICON_THEME_DIR in /usr/share/icons/Papirus-Dark /usr/share/icons/Adwaita; do
 done
 
 # ---------------------------------------------------------------------------
-# 8b. Optionally populate /etc/skel for future users
+# 9b. Optionally populate /etc/skel for future users
 # ---------------------------------------------------------------------------
 if [[ $WANT_SKEL -eq 1 ]]; then
   step "Populating /etc/skel for future users"
@@ -303,7 +311,7 @@ if [[ $WANT_SKEL -eq 1 ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 9. Display manager / session wiring
+# 10. Display manager / session wiring
 # ---------------------------------------------------------------------------
 step "Configuring the login session"
 # Install the Omari SDDM theme (harmless if SDDM isn't the active greeter).

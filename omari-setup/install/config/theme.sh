@@ -16,14 +16,14 @@ if [[ -n "$ICON_THEME_DIR" ]]; then
 fi
 
 # Setup user theme folder
-mkdir -p ~/.config/omari/themes
+mkdir -p "$HOME/.config/omari/themes"
 
 # Set initial theme
 omari-theme-set "Tokyo Night"
 
 # Set specific app links for current theme
-mkdir -p ~/.config/btop/themes
-ln -snf ~/.config/omari/current/theme/btop.theme ~/.config/btop/themes/current.theme
+mkdir -p "$HOME/.config/btop/themes"
+ln -snf "$HOME/.config/omari/current/theme/btop.theme" "$HOME/.config/btop/themes/current.theme"
 
-mkdir -p ~/.config/mako
-ln -snf ~/.config/omari/current/theme/mako.ini ~/.config/mako/config
+mkdir -p "$HOME/.config/mako"
+ln -snf "$HOME/.config/omari/current/theme/mako.ini" "$HOME/.config/mako/config"

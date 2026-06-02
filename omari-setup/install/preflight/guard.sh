@@ -4,7 +4,7 @@ if ! command -v bc &> /dev/null; then
 fi
 
 abort() {
-  echo -e "\e[$OMARI_BRAND install requires: $1\e[0m"
+  echo -e "\e[31m$OMARI_BRAND install requires: $1\e[0m"
   echo
   gum confirm "Proceed anyway on your own accord and without assistance?" || exit 1
 }
