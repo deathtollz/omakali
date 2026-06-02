@@ -79,10 +79,11 @@ remove_font() {
 }
 
 show_learn_menu() {
-  case $(menu "Learn" "  Keybindings\n  Tmux keybindings\n  Omari\n  Debian\n  Niri\n  Neovim\n󱆃  Bash") in
+  case $(menu "Learn" "  Keybindings\n  Tmux keybindings\n  Omari\n  Kali Wiki\n  Debian\n  Niri\n  Neovim\n󱆃  Bash") in
   *Keybindings*) omari-launch-webapp "https://omari.omakasui.org/manual/essentials/hotkeys" "Omari Keybindings" ;;
   *Tmux*) omari-menu-tmux-keybindings ;;
   *Omari*) omari-launch-webapp "https://omari.omakasui.org/manual" "Omari" ;;
+  *Kali*) omari-launch-webapp "https://www.kali.org/docs/" "Kali Wiki" ;;
   *Debian*) omari-launch-webapp "https://www.debian.org/doc/" "Debian" ;;
   *Niri*) omari-launch-webapp "https://niri-wm.github.io/niri/" "Niri" ;;
   *Bash*) omari-launch-webapp "https://devhints.io/bash" "Bash" ;;
