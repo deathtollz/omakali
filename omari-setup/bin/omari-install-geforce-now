@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Install GeForce NOW as a webapp
+
+omari-webapp-install "GeForce NOW" "https://play.geforcenow.com"

@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# omari:summary=Toggle between hybrid/integrated/discrete GPU modes.
+
+detect_gpu() {
+  if command -v prime-select >/dev/null 2>&1; then
+    echo "prime-select"
+  elif command -v supergfxctl >/dev/null 2>&1; then
+    echo "supergfxctl"
+  elif command -v optimus-manager >/dev/null 2>&1; then
+    echo "optimus-manager"
+  elif command -v nvidia-smi >/dev/null 2>&1; then
+    echo "nvidia"
+  else
+    echo "none"
+  fi
+}
+
+gpu_tool=$(detect_gpu)
+
+case $gpu_tool in
+prime-select)
+  current=$(prime-select get 2>/dev/null)
+  case $current in
+  nvidia) next="intel" ;;
+  intel) next="on-demand" ;;
+  on-demand) next="nvidia" ;;
+  *) next="on-demand" ;;
+  esac
+  echo "Switching GPU mode to $next..."
+  sudo prime-select "$next"
+  echo "Please log out and back in for the change to take effect."
+  ;;
+supergfxctl)
+  current=$(supergfxctl -g 2>/dev/null)
+  case $current in
+  Integrated) next="Hybrid" ;;
+  Hybrid) next="Nvidia" ;;
+  Nvidia) next="Integrated" ;;
+  *) next="Hybrid" ;;
+  esac
+  echo "Switching GPU mode to $next..."
+  sudo supergfxctl -m "$next"
+  ;;
+nvidia)
+  echo "NVIDIA GPU detected. See nvidia-smi for current settings."
+  nvidia-smi
+  ;;
+none)
+  echo "No hybrid GPU management tool found."
+  echo "Install nvidia-prime or supergfxctl for your system."
+  ;;
+esac

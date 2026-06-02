@@ -167,11 +167,17 @@ show_hardware_menu() {
     options="$options\n󰌌  Touchscreen"
   fi
 
+  if ls /sys/class/drm/card*-mipi* /sys/class/drm/card*-eDP* >/dev/null 2>&1 || ls /sys/class/drm/card1*/device/power_dpm_force_performance_level >/dev/null 2>&1; then
+    options="$options\n󰹑  Hybrid GPU"
+  fi
+
   case $(menu "Hardware" "$options") in
   *Laptop*) omari-niri-monitor-internal toggle ;;
   *Mirror*) omari-niri-monitor-internal-mirror toggle ;;
   *Touchpad*) omari-toggle-touchpad ;;
   *Touchscreen*) omari-toggle-touchscreen ;;
+  *Hybrid*) present_terminal "omari-toggle-hybrid-gpu" 2>/dev/null || \
+    notify-send -t 3000 "Hybrid GPU" "Not available on this system" ;;
   *) back_to show_trigger_menu ;;
   esac
 }
@@ -222,22 +228,23 @@ show_share_menu() {
 }
 
 show_toggle_menu() {
-  local options="󰔎  Nightlight\n󱫖  Idle Lock\n󰂛  Notifications\n󰍜  Top Bar\n󱂬  Layout\n  Window Gaps\n󰍹  Scaling"
-
-  if command -v hyprlock >/dev/null 2>&1; then
-    options="$options\n󱄄  Screensaver"
-  fi
+  local options="󱄄  Screensaver\n󰔎  Nightlight\n󱫖  Idle Lock\n󰂛  Notifications\n󰍜  Top Bar\n󱂬  Workspace Layout\n  Window Gaps\n󰍹  Monitor Scaling\n󰃰  1-Window Ratio\n󱥀  Direct Boot\n  Passwordless Sudo"
 
   case $(menu "Toggle" "$options") in
+  *Screensaver*) omari-toggle-screensaver ;;
   *Nightlight*) omari-toggle-nightlight ;;
   *Idle*) omari-toggle-idle ;;
   *Notifications*) omari-toggle-notification-silencing ;;
-  *Top*) omari-toggle-waybar ;;
+  *Bar*) omari-toggle-waybar ;;
   *Layout*) omari-niri-workspace-layout-toggle ;;
   *Gaps*) omari-niri-window-gaps-toggle ;;
   *Scaling*) omari-niri-monitor-scaling-cycle ;;
-  *Screensaver*) omari-launch-screensaver force 2>/dev/null || \
-    notify-send -t 2000 "Screensaver" "Press a key to dismiss" ;;
+  *1-Window*) omari-niri-window-single-square-aspect-toggle 2>/dev/null || \
+    notify-send -t 3000 "1-Window Ratio" "Feature not available - install niri-git or use Niri 26+" ;;
+  *Direct\ Boot*) present_terminal "omari-config-direct-boot" 2>/dev/null || \
+    notify-send -t 3000 "Direct Boot" "Feature not available on this system" ;;
+  *Passwordless*) present_terminal "omari-sudo-passwordless" 2>/dev/null || \
+    notify-send -t 3000 "Passwordless Sudo" "Feature not available on this system" ;;
   *) back_to show_trigger_menu ;;
   esac
 }
@@ -291,7 +298,7 @@ show_about_menu() {
 }
 
 show_setup_menu() {
-  local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰤆  System Sleep\n  Folders\n󰂁  Battery\n  Keybindings\n󰓎  Defaults\n󰱔  DNS\n  Security\n  Config"
+  local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰤆  System Sleep\n  Folders\n󰂁  Battery\n  Keybindings\n󰟁  Monitors\n󱌢  Input\n󰓎  Defaults\n󰱔  DNS\n  Security\n  Config"
 
   case $(menu "Setup" "$options") in
   *Audio*) omari-launch-audio ;;
@@ -301,6 +308,8 @@ show_setup_menu() {
   *System*) show_setup_system_menu ;;
   *Battery*) show_setup_battery_menu ;;
   *Keybindings*) open_in_editor ~/.config/niri/bindings.kdl ;;
+  *Monitors*) open_in_editor ~/.config/niri/monitors.kdl ;;
+  *Input*) open_in_editor ~/.config/niri/input.kdl ;;
   *Folders*) xdg-open "$HOME" 2>/dev/null || nautilus "$HOME" & ;;
   *Defaults*) show_setup_default_menu ;;
   *DNS*) present_terminal omari-setup-dns ;;
@@ -349,8 +358,14 @@ show_setup_system_menu() {
     options="$options󰒲  Disable Suspend"
   fi
 
-  case $(menu "System" "$options") in
+  if [[ -f /etc/initramfs-tools/conf.d/resume ]] || command -v hibernate >/dev/null 2>&1; then
+    options="$options\n󰤁  Hibernate"
+  fi
+
+  case $(menu "System Sleep" "$options") in
   *Suspend*) omari-toggle-suspend ;;
+  *Hibernate*) present_terminal "omari-hibernation-setup" 2>/dev/null || \
+    present_terminal "echo 'Hibernate configuration requires a swap partition or file with a resume offset.\n\nSee: https://wiki.debian.org/Hibernation'" ;;
   *) show_setup_menu ;;
   esac
 }
@@ -373,6 +388,7 @@ show_setup_default_browser_menu() {
   browser_desktop_exists chromium.desktop && options="$options  Chromium"
   browser_desktop_exists google-chrome.desktop && options="${options:+$options\n}󰊯  Chrome"
   browser_desktop_exists brave-browser.desktop && options="${options:+$options\n}󰖟  Brave"
+  browser_desktop_exists brave-browser-origin.desktop && options="${options:+$options\n}󰖟  Brave Origin"
   browser_desktop_exists microsoft-edge.desktop && options="${options:+$options\n}󰇩  Edge"
   browser_desktop_exists firefox.desktop && options="${options:+$options\n}󰈹  Firefox"
   browser_desktop_exists zen.desktop && options="${options:+$options\n}󰖟  Zen"
@@ -382,6 +398,7 @@ show_setup_default_browser_menu() {
   chromium) current="  Chromium" ;;
   chrome) current="󰊯  Chrome" ;;
   brave) current="󰖟  Brave" ;;
+  brave-origin) current="󰖟  Brave Origin" ;;
   edge) current="󰇩  Edge" ;;
   firefox) current="󰈹  Firefox" ;;
   zen) current="󰖟  Zen" ;;
@@ -390,6 +407,7 @@ show_setup_default_browser_menu() {
   case $(menu "Default Browser" "$options" "" "$current") in
   *Chromium*) omari-default-browser chromium ;;
   *Chrome*) omari-default-browser chrome ;;
+  *Brave\ Origin*) omari-default-browser brave-origin ;;
   *Brave*) omari-default-browser brave ;;
   *Edge*) omari-default-browser edge ;;
   *Firefox*) omari-default-browser firefox ;;
@@ -403,18 +421,21 @@ show_setup_default_terminal_menu() {
   omari-cmd-present alacritty && options="$options  Alacritty"
   omari-cmd-present ghostty && options="${options:+$options\n}  Ghostty"
   omari-cmd-present kitty && options="${options:+$options\n}  Kitty"
+  omari-cmd-present foot && options="${options:+$options\n}  Foot"
 
   local current=""
   case "$(omari-default-terminal)" in
   alacritty) current="  Alacritty" ;;
   ghostty) current="  Ghostty" ;;
   kitty) current="  Kitty" ;;
+  foot) current="  Foot" ;;
   esac
 
   case $(menu "Default Terminal" "$options" "" "$current") in
   *Alacritty*) omari-default-terminal alacritty ;;
   *Ghostty*) omari-default-terminal ghostty ;;
   *Kitty*) omari-default-terminal kitty ;;
+  *Foot*) omari-default-terminal foot ;;
   *) show_setup_default_menu ;;
   esac
 }
@@ -425,6 +446,10 @@ show_setup_default_editor_menu() {
   omari-cmd-present code && options="${options:+$options\n}  VSCode"
   omari-cmd-present zeditor && options="${options:+$options\n}  Zed"
   omari-cmd-present vim && options="${options:+$options\n}  Vim"
+  omari-cmd-present hx && options="${options:+$options\n}󰨞  Helix"
+  omari-cmd-present emacs && options="${options:+$options\n}󰛳  Emacs"
+  omari-cmd-present cursor && options="${options:+$options\n}󰇅  Cursor"
+  omari-cmd-present sublime_text && options="${options:+$options\n}󰘰  Sublime Text"
 
   local current=""
   case "$(omari-default-editor)" in
@@ -432,6 +457,10 @@ show_setup_default_editor_menu() {
   code) current="  VSCode" ;;
   zed | zeditor) current="  Zed" ;;
   vim) current="  Vim" ;;
+  hx) current="󰨞  Helix" ;;
+  emacs) current="󰛳  Emacs" ;;
+  cursor) current="󰇅  Cursor" ;;
+  sublime_text) current="󰘰  Sublime Text" ;;
   esac
 
   case $(menu "Default Editor" "$options" "" "$current") in
@@ -439,18 +468,25 @@ show_setup_default_editor_menu() {
   *VSCode*) omari-default-editor code ;;
   *Zed*) omari-default-editor zed ;;
   *Vim*) omari-default-editor vim ;;
+  *Helix*) omari-default-editor hx ;;
+  *Emacs*) omari-default-editor emacs ;;
+  *Cursor*) omari-default-editor cursor ;;
+  *Sublime*) omari-default-editor sublime_text ;;
   *) show_setup_default_menu ;;
   esac
 }
 
 show_setup_config_menu() {
-  case $(menu "Setup" "󰨳  Niri\n󰌧  Walker\n󰍜  Waybar\n󰂛  Mako\n  Starship\n  Tmux") in
+  case $(menu "Setup" "󰨳  Niri\n󰌧  Walker\n󰍜  Waybar\n󰂛  Mako\n  Starship\n  Tmux\n  Alacritty\n󰊠  GTK\n  APT") in
   *Niri*) open_in_editor ~/.config/niri/config.kdl ;;
   *Walker*) open_in_editor ~/.config/walker/config.toml && omari-restart-walker ;;
   *Waybar*) open_in_editor ~/.config/waybar/config.jsonc && omari-restart-waybar ;;
   *Mako*) open_in_editor ~/.config/mako/config && omari-restart-mako ;;
   *Starship*) open_in_editor ~/.config/starship.toml ;;
   *Tmux*) open_in_editor ~/.config/tmux/tmux.conf && omari-restart-tmux ;;
+  *Alacritty*) open_in_editor ~/.config/alacritty/alacritty.toml ;;
+  *GTK*) open_in_editor ~/.config/gtk-3.0/settings.ini ;;
+  *APT*) present_terminal "sudo nano /etc/apt/sources.list" ;;
   *) show_setup_menu ;;
   esac
 }
@@ -486,9 +522,10 @@ show_install_service_menu() {
 }
 
 show_install_browser_menu() {
-  case $(menu "Install" "  Chrome\n  Edge\n  Brave\n  Firefox\n󰖟  Zen") in
+  case $(menu "Install" "  Chrome\n  Edge\n  Brave Origin\n  Brave\n  Firefox\n󰖟  Zen") in
   *Chrome*) present_terminal "omari-install-browser chrome" ;;
   *Edge*) present_terminal "omari-install-browser edge" ;;
+  *Brave\ Origin*) present_terminal "omari-install-browser brave-origin" ;;
   *Brave*) present_terminal "omari-install-browser brave" ;;
   *Firefox*) present_terminal "omari-install-browser firefox" ;;
   *Zen*) present_terminal "omari-install-browser zen" ;;
@@ -506,11 +543,15 @@ show_install_style_menu() {
 }
 
 show_install_font_menu() {
-  case $(menu "Install" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts" "--width 350") in
+  case $(menu "Install" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts\n  Fira Code\n  Hack\n  Meslo\n  Source Code Pro" "--width 350") in
   *Cascadia*) install_font "Cascadia Mono" "cascadia-mono" "Cascadia Mono Nerd Font" ;;
   *JetBrains*) install_font "JetBrains Mono" "jetbrains-mono" "JetBrains Mono" ;;
   *iA*) install_font "iA Fonts" "iafonts" "iA Fonts Nerd Font" ;;
   *Microsoft*) install_font "Microsoft Core Fonts" "mscore" "Microsoft Core Fonts" ;;
+  *Fira*) install_font "Fira Code" "firacode" "Fira Code" ;;
+  *Hack*) install_font "Hack" "hack" "Hack" ;;
+  *Meslo*) install_font "Meslo" "meslo" "Meslo" ;;
+  *Source\ Code\ Pro*) install_font "Source Code Pro" "sourcecodepro" "Source Code Pro" ;;
   *) show_install_menu ;;
   esac
 }
@@ -521,7 +562,7 @@ show_install_development_menu() {
   *Rails*) present_terminal "omari-install-dev-env ruby" ;;
   *JavaScript*) show_install_javascript_menu ;;
   *Go*) present_terminal "omari-install-dev-env go" ;;
-  *PHP*) present_terminal "omari-install-dev-env php" ;;
+  *PHP*) show_install_php_menu ;;
   *Python*) present_terminal "omari-install-dev-env python" ;;
   *Elixir*) show_install_elixir_menu ;;
   *Zig*) present_terminal "omari-install-dev-env zig" ;;
@@ -564,54 +605,82 @@ show_install_elixir_menu() {
   esac
 }
 
+show_install_php_menu() {
+  case $(menu "Install" "  PHP\n  Laravel\n  Symfony") in
+  *PHP*) present_terminal "omari-install-dev-env php" ;;
+  *Laravel*) present_terminal "omari-install-dev-env laravel" ;;
+  *Symfony*) present_terminal "omari-install-dev-env symfony" ;;
+  *) show_install_development_menu ;;
+  esac
+}
+
 show_install_editor_menu() {
-  case $(menu "Install" "  VSCode\n  Zed") in
+  case $(menu "Install" "  VSCode\n  Zed\n  Vim\n  Neovim\n󰛳  Emacs\n󰨞  Helix\n󰇅  Cursor\n󰘰  Sublime Text") in
   *VSCode*) present_terminal omari-install-vscode ;;
   *Zed*) install "Zed" "zed" ;;
+  *Vim*) install "Vim" "vim" ;;
+  *Neovim*) install "Neovim" "neovim" ;;
+  *Emacs*) install "Emacs" "emacs" ;;
+  *Helix*) install "Helix" "helix" ;;
+  *Cursor*) present_terminal "omari-install-cursor" 2>/dev/null || \
+    install "Cursor" "cursor" ;;
+  *Sublime*) present_terminal "omari-install-sublime-text" 2>/dev/null || \
+    install "Sublime Text" "sublime-text" ;;
   *) show_install_menu ;;
   esac
 }
 
 show_install_terminal_menu() {
-  case $(menu "Install" "  Alacritty\n  Ghostty\n  Kitty") in
+  case $(menu "Install" "  Alacritty\n  Ghostty\n  Kitty\n  Foot") in
   *Alacritty*) install_terminal "alacritty" ;;
   *Ghostty*) install_terminal "ghostty" ;;
   *Kitty*) install_terminal "kitty" ;;
+  *Foot*) install_terminal "foot" ;;
   *) show_install_menu ;;
   esac
 }
 
 show_install_ai_menu() {
-  case $(menu "Install" "󱚤  Ollama\n󱚤  LM Studio") in
+  case $(menu "Install" "󱚤  Ollama\n󱚤  LM Studio\n󰎙  Dictation\n󰭹  Crush") in
   *Ollama*) install "Ollama" "ollama" ;;
   *LM*) present_terminal "omari-install-lm-studio" 2>/dev/null || \
     install "LM Studio" "lmstudio" ;;
+  *Dictation*) present_terminal "omari-install-dictation" 2>/dev/null || \
+    install "Dictation" "dictation" ;;
+  *Crush*) present_terminal "omari-install-crush" 2>/dev/null || \
+    install "Crush" "crush" ;;
   *) show_install_menu ;;
   esac
 }
 
 show_install_gaming_menu() {
-  case $(menu "Install" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller") in
+  case $(menu "Install" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller\n󰇍  GeForce NOW\n�  Xbox Cloud Gaming") in
   *Steam*) present_terminal omari-install-steam ;;
   *RetroArch*) install "RetroArch" "retroarch" ;;
   *Minecraft*) present_terminal omari-install-minecraft ;;
   *Lutris*) present_terminal omari-install-lutris ;;
   *Heroic*) present_terminal omari-install-heroic ;;
   *Moonlight*) present_terminal omari-install-moonlight ;;
+  *Xbox\ Cloud*) present_terminal "omari-install-xbox-cloud" 2>/dev/null || \
+    install "Xbox Cloud Gaming" "xbox-cloud-gaming" ;;
   *Xbox*) present_terminal omari-install-xbox-controllers ;;
+  *GeForce*) present_terminal "omari-install-geforce-now" 2>/dev/null || \
+    install "GeForce NOW" "geforce-now" ;;
   *) show_install_menu ;;
   esac
 }
 
 show_remove_gaming_menu() {
-  case $(menu "Remove" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller") in
+  case $(menu "Remove" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller\n󰇍  GeForce NOW\n�  Xbox Cloud Gaming") in
   *Steam*) present_terminal omari-remove-steam ;;
   *RetroArch*) remove "RetroArch" "retroarch" ;;
   *Minecraft*) present_terminal omari-remove-minecraft ;;
   *Lutris*) present_terminal omari-remove-lutris ;;
   *Heroic*) present_terminal omari-remove-heroic ;;
   *Moonlight*) present_terminal omari-remove-moonlight ;;
+  *Xbox\ Cloud*) remove "Xbox Cloud Gaming" "xbox-cloud-gaming" ;;
   *Xbox*) present_terminal omari-remove-xbox-controllers ;;
+  *GeForce*) remove "GeForce NOW" "geforce-now" ;;
   *) show_remove_menu ;;
   esac
 }
@@ -639,19 +708,24 @@ show_remove_style_menu() {
 }
 
 show_remove_font_menu() {
-  case $(menu "Remove Font" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts" "--width 350") in
+  case $(menu "Remove Font" "  Cascadia Mono\n  JetBrains Mono\n  iA Fonts\n  Microsoft Core Fonts\n  Fira Code\n  Hack\n  Meslo\n  Source Code Pro" "--width 350") in
   *Cascadia*) remove_font "Cascadia Mono" "cascadia-mono" ;;
   *JetBrains*) remove_font "JetBrains Mono" "jetbrains-mono" ;;
   *iA*) remove_font "iA Fonts" "iafonts" ;;
   *Microsoft*) remove_font "Microsoft Core Fonts" "mscore" ;;
+  *Fira*) remove_font "Fira Code" "firacode" ;;
+  *Hack*) remove_font "Hack" "hack" ;;
+  *Meslo*) remove_font "Meslo" "meslo" ;;
+  *Source\ Code\ Pro*) remove_font "Source Code Pro" "sourcecodepro" ;;
   *) show_remove_menu ;;
   esac
 }
 
 show_remove_browser_menu() {
-  case $(menu "Remove" "  Chrome\n  Edge\n  Brave\n  Firefox\n  Zen") in
+  case $(menu "Remove" "  Chrome\n  Edge\n  Brave Origin\n  Brave\n  Firefox\n󰖟  Zen") in
   *Chrome*) present_terminal "omari-remove-browser chrome" ;;
   *Edge*) present_terminal "omari-remove-browser edge" ;;
+  *Brave\ Origin*) present_terminal "omari-remove-browser brave-origin" ;;
   *Brave*) present_terminal "omari-remove-browser brave" ;;
   *Firefox*) present_terminal "omari-remove-browser firefox" ;;
   *Zen*) present_terminal "omari-remove-browser zen" ;;
@@ -664,7 +738,7 @@ show_remove_development_menu() {
   *Rails*) present_terminal "omari-remove-dev-env ruby" ;;
   *JavaScript*) show_remove_javascript_menu ;;
   *Go*) present_terminal "omari-remove-dev-env go" ;;
-  *PHP*) present_terminal "omari-remove-dev-env php" ;;
+  *PHP*) show_remove_php_menu ;;
   *Python*) present_terminal "omari-remove-dev-env python" ;;
   *Elixir*) show_remove_elixir_menu ;;
   *Zig*) present_terminal "omari-remove-dev-env zig" ;;
@@ -691,6 +765,15 @@ show_remove_elixir_menu() {
   case $(menu "Remove Elixir Environment" "  Elixir\n  Phoenix") in
   *Elixir*) present_terminal "omari-remove-dev-env elixir" ;;
   *Phoenix*) present_terminal "omari-remove-dev-env phoenix" ;;
+  *) show_remove_development_menu ;;
+  esac
+}
+
+show_remove_php_menu() {
+  case $(menu "Remove" "  PHP\n  Laravel\n  Symfony") in
+  *PHP*) present_terminal "omari-remove-dev-env php" ;;
+  *Laravel*) present_terminal "omari-remove-dev-env laravel" ;;
+  *Symfony*) present_terminal "omari-remove-dev-env symfony" ;;
   *) show_remove_development_menu ;;
   esac
 }
@@ -743,9 +826,12 @@ show_update_process_menu() {
 }
 
 show_update_hardware_menu() {
-  case $(menu "Restart" "  Audio\n󰂯  Bluetooth") in
+  case $(menu "Restart" "  Audio\n󰂯  Bluetooth\n  WiFi\n󰟸  Touchpad") in
   *Audio*) present_terminal omari-restart-pipewire ;;
   *Bluetooth*) present_terminal omari-restart-bluetooth ;;
+  *WiFi*) present_terminal "sudo systemctl restart NetworkManager" ;;
+  *Touchpad*) present_terminal "sudo modprobe -r i2c_hid_acpi && sudo modprobe i2c_hid_acpi" 2>/dev/null || \
+    present_terminal "sudo modprobe -r hid_multitouch && sudo modprobe hid_multitouch" ;;
   *) show_update_menu ;;
   esac
 }
@@ -764,11 +850,17 @@ show_about() {
 show_system_menu() {
   local options="󰌾  Lock"
   [[ ! -f ~/.local/state/omari/toggles/suspend-off ]] && options="$options\n󰒲  Suspend"
-  options="$options\n󰌾  Logout\n󰜉  Restart\n󰐥  Shutdown"
+  if [[ -f /etc/initramfs-tools/conf.d/resume ]] || command -v hibernate >/dev/null 2>&1; then
+    options="$options\n󰤁  Hibernate"
+  fi
+  options="$options\n󱄄  Screensaver\n󰌾  Logout\n󰜉  Restart\n󰐥  Shutdown"
 
   case $(menu "System" "$options") in
   *Lock*) omari-system-lock ;;
   *Suspend*) systemctl suspend ;;
+  *Hibernate*) systemctl hibernate 2>/dev/null || notify-send -t 3000 "Hibernate" "Hibernate not configured" ;;
+  *Screensaver*) omari-launch-screensaver 2>/dev/null || \
+    notify-send -t 3000 "Screensaver" "Screensaver requires tte" ;;
   *Logout*) omari-system-logout ;;
   *Restart*) omari-system-reboot ;;
   *Shutdown*) omari-system-shutdown ;;

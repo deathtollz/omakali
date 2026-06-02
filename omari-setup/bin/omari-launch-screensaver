@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# omari:summary=Launch the Omari screensaver in terminals across all monitors.
+
+if ! command -v tte &>/dev/null; then
+  exit 1
+fi
+
+pgrep -f org.omari.screensaver && exit 0
+
+if omari-toggle-enabled screensaver-off && [[ $1 != "force" ]]; then
+  exit 1
+fi
+
+walker -q
+
+focused=$(omari-niri-monitor-focused)
+terminal=$(xdg-terminal-exec --print-id)
+
+launch_on_monitor() {
+  local monitor=$1
+  niri msg action focus-monitor "$monitor" >/dev/null 2>&1
+
+  case $terminal in
+  *Alacritty*)
+    setsid alacritty --class=org.omari.screensaver \
+      --config-file ~/.local/share/omari/default/alacritty/screensaver.toml \
+      -e omari-screensaver &
+    ;;
+  *ghostty*)
+    setsid ghostty --class=org.omari.screensaver \
+      --config-file=~/.local/share/omari/default/ghostty/screensaver \
+      --font-size=18 \
+      -e omari-screensaver &
+    ;;
+  *foot*)
+    setsid foot --app-id=org.omari.screensaver \
+      --config="$OMARI_PATH/default/foot/screensaver.ini" \
+      -e omari-screensaver &
+    ;;
+  *kitty*)
+    setsid kitty --class=org.omari.screensaver \
+      --override font_size=18 \
+      --override window_padding_width=0 \
+      -e omari-screensaver &
+    ;;
+  *)
+    notify-send -u low "Screensaver only runs in Alacritty, Foot, Ghostty, or Kitty"
+  esac
+}
+
+niri msg -j outputs 2>/dev/null | jq -r '
+  (if type == "object" and has("Ok") then .Ok else . end | if type == "array" then . else [.] end) | .[].name
+' | while read -r m; do
+  [[ -n $m ]] && launch_on_monitor "$m"
+done
+
+[[ -n $focused ]] && niri msg action focus-monitor "$focused" >/dev/null 2>&1

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# omari:summary=Configure the Omari screensaver text.
+# omari:examples=omari branding screensaver image | omari branding screensaver text | omari branding screensaver reset
+
+mkdir -p ~/.config/omari/branding
+
+case "${1:-}" in
+image)
+  image=$(omari-menu-image 2>/dev/null || zenity --file-select --title "Select image for screensaver" 2>/dev/null)
+  if [[ -n $image ]] && omari-transcode-ascii "$image" ~/.config/omari/branding/screensaver.txt; then
+    omari-launch-screensaver force >/dev/null 2>&1
+  fi
+  ;;
+text)
+  omari-launch-editor ~/.config/omari/branding/screensaver.txt >/dev/null 2>&1
+  ;;
+reset)
+  cp "$OMARI_PATH/logo.txt" ~/.config/omari/branding/screensaver.txt && omari-launch-screensaver force >/dev/null 2>&1
+  ;;
+*)
+  echo "Usage: omari-branding-screensaver <image|text|reset>" >&2
+  exit 1
+  ;;
+esac

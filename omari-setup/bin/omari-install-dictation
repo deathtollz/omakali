@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# omari:summary=Install speech-to-text dictation tools
+
+sudo apt-get update -qq
+sudo apt-get install -y vosk-api python3-vosk 2>/dev/null || {
+  pip3 install vosk 2>/dev/null || true
+}
+sudo apt-get install -y whisper-cpp 2>/dev/null || true
+
+notify-send "Dictation" "Speech-to-text tools installed"

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Install Crush (AI-powered code assistant)
+
+if command -v cargo >/dev/null 2>&1; then
+  cargo install crush
+else
+  echo "Rust/Cargo required. Install via omari-install-dev-env rust first."
+  exit 1
+fi

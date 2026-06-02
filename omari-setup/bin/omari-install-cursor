@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# omari:summary=Install Cursor IDE (AppImage)
+
+APPIMAGE_URL="https://downloads.cursor.com/production/linux/x64/cursor-linux-x64.AppImage"
+APPIMAGE="$HOME/Downloads/Cursor.AppImage"
+
+echo "Downloading Cursor IDE..."
+curl -fsSL "$APPIMAGE_URL" -o "$APPIMAGE" || {
+  notify-send -u critical "Cursor" "Download failed"
+  exit 1
+}
+
+chmod +x "$APPIMAGE"
+notify-send "Cursor" "Downloaded to $APPIMAGE"

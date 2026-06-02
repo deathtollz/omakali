@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# omari:summary=Install Xbox Cloud Gaming as a webapp
+
+omari-webapp-install "Xbox Cloud Gaming" "https://xbox.com/play"
