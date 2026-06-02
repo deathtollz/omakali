@@ -4,7 +4,9 @@
 
 set -e
 
+OMARI_PATH="${OMARI_PATH:-$HOME/.local/share/omari}"
+
 echo -e "\e[32mUpdate Omari\e[0m"
 
-git -C $OMARI_PATH pull --autostash
-git -C $OMARI_PATH --no-pager diff --check || git -C $OMARI_PATH reset --merge
+git -C "$OMARI_PATH" pull --autostash
+git -C "$OMARI_PATH" --no-pager diff --check || git -C "$OMARI_PATH" reset --merge

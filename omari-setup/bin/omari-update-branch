@@ -5,6 +5,8 @@
 
 set -e
 
+OMARI_PATH="${OMARI_PATH:-$HOME/.local/share/omari}"
+
 if (($# == 0)); then
   echo "Usage: omari-branch-set [master|dev]"
   exit 1

@@ -2,6 +2,8 @@
 
 # omari:summary=Check whether a newer Omari version is available.
 
+OMARI_PATH="${OMARI_PATH:-$HOME/.local/share/omari}"
+
 # Get remote tag
 latest_tag=$(git -C "$OMARI_PATH" ls-remote --tags origin | grep -v "{}" | awk '{print $2}' | sed 's#refs/tags/##' | sort -V | tail -n 1)
 if [[ -z $latest_tag ]]; then
