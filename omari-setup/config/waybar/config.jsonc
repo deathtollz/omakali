@@ -111,21 +111,13 @@
       "transition-duration": 600,
       "children-class": "tray-group-item",
     },
-    "modules": ["custom/expand-icon", "tray"],
+    "modules": ["tray"],
   },
   "custom/screenshot": {
     "format": "",
     "on-click": "omari-capture-screenshot",
     "on-click-right": "omari-capture-screenrecording --portal --with-desktop-audio",
     "tooltip-format": "Screenshot (L-click)\nScreen Record (R-click)",
-  },
-  "custom/expand-icon": {
-    "format": "◀",
-    "tooltip": false,
-    "on-scroll-up": "",
-    "on-scroll-down": "",
-    "on-scroll-left": "",
-    "on-scroll-right": "",
   },
   "custom/notification-silencing-indicator": {
     "on-click": "omari-toggle-notification-silencing",
