@@ -13,7 +13,15 @@ mkdir -p ~/.local/share/fonts
 
 case "$1" in
 jetbrains-mono)
-  omari-pkg-add fonts-jetbrains-mono
+  if [[ ! -d ~/.local/share/fonts/JetBrainsMonoNerd ]]; then
+    echo "Downloading JetBrainsMono Nerd Font..."
+    mkdir -p /tmp/omari-font-jb
+    curl -fsSL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.3.0/JetBrainsMono.zip" -o /tmp/omari-font-jb/JetBrainsMono.zip
+    unzip -q -o /tmp/omari-font-jb/JetBrainsMono.zip -d /tmp/omari-font-jb/
+    mkdir -p ~/.local/share/fonts/JetBrainsMonoNerd
+    mv /tmp/omari-font-jb/*.ttf ~/.local/share/fonts/JetBrainsMonoNerd/ 2>/dev/null
+    rm -rf /tmp/omari-font-jb
+  fi
   ;;
 iafonts)
   omari-pkg-add fonts-ia-writer-mono
