@@ -120,7 +120,7 @@
     "tooltip-format": "Screenshot (L-click)\nScreen Record (R-click)",
   },
   "custom/expand-icon": {
-    "format": "",
+    "format": "◀",
     "tooltip": false,
     "on-scroll-up": "",
     "on-scroll-down": "",
