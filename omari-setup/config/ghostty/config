@@ -2,7 +2,7 @@
 config-file = ?"~/.config/omari/current/theme/ghostty.conf"
 
 # Font
-font-family = "Cascadia Mono Nerd Font"
+font-family = "JetBrainsMono Nerd Font"
 font-style = Regular
 font-size = 9
 
