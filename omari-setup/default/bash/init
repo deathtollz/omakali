@@ -20,3 +20,8 @@ if command -v fzf &> /dev/null; then
 fi
 
 source "$OMARI_PATH/default/bash/completions"
+
+if [[ $- == *i* ]] && [[ -z "${OMARI_FASTFETCH_DONE:-}" ]] && command -v fastfetch &> /dev/null; then
+  export OMARI_FASTFETCH_DONE=1
+  fastfetch
+fi
