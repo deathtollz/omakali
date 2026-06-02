@@ -11,8 +11,8 @@ if [[ -z $latest_tag ]]; then
   exit 1
 fi
 
-# Get local tag
-current_tag=$(git -C "$OMARI_PATH" describe --tags $(git -C "$OMARI_PATH" rev-list --tags --max-count=1))
+# Get local tag at HEAD
+current_tag=$(git -C "$OMARI_PATH" describe --tags HEAD 2>/dev/null)
 if [[ -z $current_tag ]]; then
   echo "Error: Could not retrieve current tag."
   exit 1

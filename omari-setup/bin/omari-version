@@ -2,4 +2,5 @@
 
 # omari:summary=Print the installed Omari version.
 
-cat $OMARI_PATH/version
+OMARI_PATH="${OMARI_PATH:-$HOME/.local/share/omari}"
+cat "$OMARI_PATH/version" 2>/dev/null || echo "unknown"

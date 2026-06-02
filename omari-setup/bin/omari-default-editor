@@ -5,7 +5,12 @@
 # omari:examples=omari default editor | omari default editor code | omari default editor helix
 
 if (($# == 0)); then
-  sed -n 's/^EDITOR=\(.*\)/\1/p' /etc/environment.d/99-default.conf
+  local conf="${XDG_CONFIG_HOME:-$HOME/.config}/environment.d/99-default.conf"
+  if [[ -f "$conf" ]]; then
+    sed -n 's/^EDITOR=\(.*\)/\1/p' "$conf"
+  elif [[ -f /etc/environment.d/99-default.conf ]]; then
+    sed -n 's/^EDITOR=\(.*\)/\1/p' /etc/environment.d/99-default.conf
+  fi
   exit 0
 fi
 
