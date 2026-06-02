@@ -37,6 +37,7 @@ binds {
   Print hotkey-overlay-title="Screen record (portal, desktop audio)" { spawn "omari-capture-screenrecording" "--portal" "--with-desktop-audio"; }
   Mod+Print hotkey-overlay-title="Color picker" { spawn-sh "pkill hyprpicker || hyprpicker -a"; }
   Mod+Ctrl+Print hotkey-overlay-title="Extract text (OCR) from screenshot" { spawn "omari-capture-text-extraction"; }
+  Mod+Alt+S hotkey-overlay-title="Capture menu" { spawn "omari-menu" "capture"; }
 
   // File sharing
   Mod+Ctrl+S hotkey-overlay-title="Share" { spawn "omari-menu" "share"; }

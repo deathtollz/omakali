@@ -7,6 +7,7 @@
   "modules-left": ["custom/omari", "niri/workspaces"],
   "modules-center": ["clock", "custom/notification-silencing-indicator"],
   "modules-right": [
+    "custom/screenshot",
     "group/tray-expander",
     "bluetooth",
     "network",
@@ -111,6 +112,12 @@
       "children-class": "tray-group-item",
     },
     "modules": ["custom/expand-icon", "tray"],
+  },
+  "custom/screenshot": {
+    "format": "",
+    "on-click": "omari-capture-screenshot",
+    "on-click-right": "omari-capture-screenrecording --portal --with-desktop-audio",
+    "tooltip-format": "Screenshot (L-click)\nScreen Record (R-click)",
   },
   "custom/expand-icon": {
     "format": "",

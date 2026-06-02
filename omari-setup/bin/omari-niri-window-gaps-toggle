@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# omari:summary=Toggle window gaps on/off for the current workspace.
+# omari:group=niri
+
+set -euo pipefail
+
+state_file="$HOME/.local/state/omari/toggles/window-gaps-off"
+
+if [[ -f "$state_file" ]]; then
+  niri msg action set-window-gaps 8 4 4 4 2>/dev/null
+  rm -f "$state_file"
+  msg="Gaps On"
+else
+  niri msg action set-window-gaps 0 0 0 0 2>/dev/null
+  mkdir -p "$(dirname "$state_file")"
+  touch "$state_file"
+  msg="Gaps Off"
+fi
+
+omari-notification-send -g "" "Window Gaps" "$msg" 2>/dev/null || \
+  notify-send "Window Gaps" "$msg" 2>/dev/null || true

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# omari:summary=Toggle between tabbed and default workspace layout.
+# omari:group=niri
+
+set -euo pipefail
+
+state_file="$HOME/.local/state/omari/toggles/tabbed-layout"
+
+if [[ -f "$state_file" ]]; then
+  niri msg action set-layout default 2>/dev/null
+  rm -f "$state_file"
+  icon="󱂬"
+  msg="Default Layout"
+else
+  niri msg action set-layout tabbed 2>/dev/null
+  mkdir -p "$(dirname "$state_file")"
+  touch "$state_file"
+  icon="󰃄"
+  msg="Tabbed Layout"
+fi
+
+omari-notification-send -g "$icon" "Layout" "$msg" 2>/dev/null || \
+  notify-send "Layout" "$msg" 2>/dev/null || true

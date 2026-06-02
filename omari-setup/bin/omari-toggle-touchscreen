@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# omari:summary=Enable/disable touchscreen by adding/removing a device filter in Niri input config.
+# omari:args=[on|off|toggle]
+# omari:examples=omari toggle touchscreen | omari toggle touchscreen off
+
+set -euo pipefail
+
+cfg="$HOME/.config/niri/input.kdl"
+touchscreen_map="$HOME/.config/omari/state/touchscreen-device"
+
+[[ -f "$cfg" ]] || { echo "Niri input config not found: $cfg" >&2; exit 1; }
+
+# Find touchscreen device if not cached
+find_touchscreen() {
+  local dev
+  dev=$(libinput list-devices 2>/dev/null | awk '/Touchscreen/ {found=1} found && /Device:/ {print $2; exit}' || true)
+  if [[ -n "$dev" ]]; then
+    mkdir -p "$(dirname "$touchscreen_map")"
+    echo "$dev" > "$touchscreen_map"
+  fi
+  echo "$dev"
+}
+
+device=""
+[[ -f "$touchscreen_map" ]] && device=$(<"$touchscreen_map")
+[[ -z "$device" ]] && device=$(find_touchscreen)
+[[ -z "$device" ]] && {
+  omari-notification-send -g "󰌌" "Touchscreen" "No touchscreen found" 2>/dev/null || true
+  exit 1
+}
+
+# Check if touchscreen is currently disabled
+is_off=0
+if grep -qF "$device" "$cfg" 2>/dev/null; then
+  is_off=1
+fi
+
+action="${1:-toggle}"
+case "$action" in
+  on)  want_off=0 ;;
+  off) want_off=1 ;;
+  *)   want_off=$([[ "$is_off" -eq 1 ]] && echo 0 || echo 1) ;;
+esac
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+if [[ "$want_off" -eq 1 && "$is_off" -eq 0 ]]; then
+  awk -v dev="$device" '
+    /input[[:space:]]*\{/ && !done { print; print "    devices {"; print "        disable \"'$device'\""; print "    }"; done=1; next }
+    { print }
+  ' "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+  msg="Disabled"
+elif [[ "$want_off" -eq 0 && "$is_off" -eq 1 ]]; then
+  awk -v dev="$device" '
+    /input[[:space:]]*\{/ { inblk=1 }
+    inblk && /disable[[:space:]]*\"'"$device"'\"[[:space:]]*$/ { skip=1; next }
+    inblk && /devices[[:space:]]*\{/ { skip=1; next }
+    inblk && /\}/ { if (skip) { skip=0; next } }
+    { print }
+  ' "$cfg" > "$tmp"
+  mv "$tmp" "$cfg"
+  msg="Enabled"
+else
+  msg=$([[ "$want_off" -eq 1 ]] && echo "Disabled" || echo "Enabled")
+fi
+
+niri validate -c "$HOME/.config/niri/config.kdl" >/dev/null 2>&1 || true
+
+omari-notification-send -g "󰌌" "Touchscreen" "$msg" 2>/dev/null || \
+  notify-send "Touchscreen" "$msg" 2>/dev/null || true

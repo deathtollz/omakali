@@ -93,12 +93,86 @@ show_learn_menu() {
 }
 
 show_trigger_menu() {
-  case $(menu "Trigger" "󰔛  Reminder\n󰧸  Transcode\n  Share\n󰔎  Toggle") in
+  case $(menu "Trigger" "󰔛  Reminder\n󰧸  Transcode\n  Capture\n  Share\n󰔎  Toggle\n  Hardware") in
   *Reminder*) show_reminder_menu ;;
   *Transcode*) omari-transcode || back_to show_trigger_menu ;;
+  *Capture*) show_capture_menu ;;
   *Share*) show_share_menu ;;
   *Toggle*) show_toggle_menu ;;
+  *Hardware*) show_hardware_menu ;;
   *) show_main_menu ;;
+  esac
+}
+
+show_capture_menu() {
+  case $(menu "Capture" "  Screenshot\n  Screenrecord\n󰴑  Text Extraction\n󰃉  Color Picker") in
+  *Screenshot*) omari-capture-screenshot ;;
+  *Screenrecord*) show_screenrecord_menu ;;
+  *Text*) omari-capture-text-extraction ;;
+  *Color*) pkill hyprpicker 2>/dev/null || hyprpicker -a ;;
+  *) back_to show_trigger_menu ;;
+  esac
+}
+
+show_screenrecord_menu() {
+  # Check if currently recording
+  if pgrep -f "gpu-screen-recorder" >/dev/null 2>&1; then
+    case $(menu "Screenrecord" "󰻃  Stop Recording") in
+    *Stop*) omari-capture-screenrecording --stop-recording 2>/dev/null || true ;;
+    *) back_to show_capture_menu ;;
+    esac
+    return
+  fi
+
+  case $(menu "Screenrecord" "󰻃  Screen\n󰻃  Screen + Audio\n󰩭  Region\n󰩭  Region + Audio\n󱂃  Webcam Select") in
+  *Screen\ +\ Audio*) omari-capture-screenrecording --portal --with-desktop-audio ;;
+  *Screen*) omari-capture-screenrecording --portal ;;
+  *Region\ +\ Audio*) omari-capture-screenrecording --with-desktop-audio ;;
+  *Region*) omari-capture-screenrecording ;;
+  *Webcam*) show_webcam_select_menu ;;
+  *) back_to show_capture_menu ;;
+  esac
+}
+
+show_webcam_select_menu() {
+  local cams=""
+  while IFS= read -r dev; do
+    [[ -n "$dev" ]] && cams="${cams}󰻃  $dev
+"
+  done < <(find /dev/video* 2>/dev/null | sort | head -8)
+
+  if [[ -z "$cams" ]]; then
+    omari-notification-send -g "󰴑" "Webcam" "No webcam devices found" 2>/dev/null || true
+    back_to show_capture_menu
+    return
+  fi
+
+  local selected
+  selected=$(menu "Webcam" "$(echo -e "$cams")" "--width 350")
+  if [[ $selected == "CNCLD" || -z $selected ]]; then
+    back_to show_capture_menu
+  else
+    omari-capture-screenrecording --with-desktop-audio --with-microphone-audio --with-webcam --webcam-device="$selected"
+  fi
+}
+
+show_hardware_menu() {
+  local options="󰛧  Laptop Display\n󰍹  Mirror Display"
+
+  if omari-hw-touchpad 2>/dev/null; then
+    options="$options\n󰟸  Touchpad"
+  fi
+
+  if [[ -f "$HOME/.config/omari/state/touchscreen-device" ]] || libinput list-devices 2>/dev/null | grep -q "Touchscreen"; then
+    options="$options\n󰌌  Touchscreen"
+  fi
+
+  case $(menu "Hardware" "$options") in
+  *Laptop*) omari-niri-monitor-internal toggle ;;
+  *Mirror*) omari-niri-monitor-internal-mirror toggle ;;
+  *Touchpad*) omari-toggle-touchpad ;;
+  *Touchscreen*) omari-toggle-touchscreen ;;
+  *) back_to show_trigger_menu ;;
   esac
 }
 
@@ -148,20 +222,45 @@ show_share_menu() {
 }
 
 show_toggle_menu() {
-  case $(menu "Toggle" "󰔎  Nightlight") in
+  local options="󰔎  Nightlight\n󱫖  Idle Lock\n󰂛  Notifications\n󰍜  Top Bar\n󱂬  Layout\n  Window Gaps\n󰍹  Scaling"
+
+  if command -v hyprlock >/dev/null 2>&1; then
+    options="$options\n󱄄  Screensaver"
+  fi
+
+  case $(menu "Toggle" "$options") in
   *Nightlight*) omari-toggle-nightlight ;;
+  *Idle*) omari-toggle-idle ;;
+  *Notifications*) omari-toggle-notification-silencing ;;
+  *Top*) omari-toggle-waybar ;;
+  *Layout*) omari-niri-workspace-layout-toggle ;;
+  *Gaps*) omari-niri-window-gaps-toggle ;;
+  *Scaling*) omari-niri-monitor-scaling-cycle ;;
+  *Screensaver*) omari-launch-screensaver force 2>/dev/null || \
+    notify-send -t 2000 "Screensaver" "Press a key to dismiss" ;;
   *) back_to show_trigger_menu ;;
   esac
 }
 
 show_style_menu() {
-  case $(menu "Style" "󰸌  Theme\n󱣴  Plymouth\n  Font\n  Background\n  About") in
+  case $(menu "Style" "󰸌  Theme\n󰟵  Unlock\n  Font\n  Background\n󰨳  Niri\n󱄄  Screensaver\n  About") in
   *Theme*) show_theme_menu ;;
-  *Plymouth*) omari-launch-walker -m menus:omariunlocks --width 800 --minheight 400 ;;
+  *Unlock*) omari-launch-walker -m menus:omariunlocks --width 800 --minheight 400 ;;
   *Font*) show_font_menu ;;
   *Background*) show_background_menu ;;
+  *Niri*) open_in_editor ~/.config/niri/looknfeel.kdl ;;
+  *Screensaver*) show_screensaver_menu ;;
   *About*) show_about_menu ;;
   *) show_main_menu ;;
+  esac
+}
+
+show_screensaver_menu() {
+  case $(menu "Screensaver" "  Edit Text\n  Set From Image\n  Restore Default") in
+  *Text*) omari-branding-screensaver text ;;
+  *Image*) omari-branding-screensaver image ;;
+  *Default*) omari-branding-screensaver reset ;;
+  *) show_style_menu ;;
   esac
 }
 
@@ -192,17 +291,42 @@ show_about_menu() {
 }
 
 show_setup_menu() {
-  case $(menu "Setup" "  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰤆  System Sleep\n  Folders\n  Keybindings\n󰓎  Defaults\n󰱔  DNS\n  Config") in
+  local options="  Audio\n  Wifi\n󰂯  Bluetooth\n󱐋  Power Profile\n󰤆  System Sleep\n  Folders\n󰂁  Battery\n  Keybindings\n󰓎  Defaults\n󰱔  DNS\n  Security\n  Config"
+
+  case $(menu "Setup" "$options") in
   *Audio*) omari-launch-audio ;;
   *Wifi*) omari-launch-wifi ;;
   *Bluetooth*) omari-launch-bluetooth ;;
   *Power*) show_setup_power_menu ;;
   *System*) show_setup_system_menu ;;
+  *Battery*) show_setup_battery_menu ;;
   *Keybindings*) open_in_editor ~/.config/niri/bindings.kdl ;;
+  *Folders*) xdg-open "$HOME" 2>/dev/null || nautilus "$HOME" & ;;
   *Defaults*) show_setup_default_menu ;;
   *DNS*) present_terminal omari-setup-dns ;;
+  *Security*) show_setup_security_menu ;;
   *Config*) show_setup_config_menu ;;
   *) show_main_menu ;;
+  esac
+}
+
+show_setup_battery_menu() {
+  case $(menu "Battery" "󱈏  Limit Charging (80%)\n󰁹  Full Charging (100%)") in
+  *Limit*) present_terminal "sudo asusctl battery limit 80" 2>/dev/null || \
+    present_terminal "echo 'Battery charge limiting requires asusctl.\n\nInstall it with: omari-pkg-add asusctl'" ;;
+  *Full*) present_terminal "sudo asusctl battery oneshot" 2>/dev/null || \
+    present_terminal "echo 'Resetting to full charge mode requires asusctl.'" ;;
+  *) show_setup_menu ;;
+  esac
+}
+
+show_setup_security_menu() {
+  case $(menu "Security" "󰈷  Fingerprint\n  Fido2") in
+  *Fingerprint*) present_terminal omari-setup-security-fingerprint 2>/dev/null || \
+    present_terminal "echo 'Fingerprint enrollment requires fprintd.\n\nMake sure your device has a fingerprint reader.\n\nRun: sudo fprintd-enroll'" ;;
+  *Fido2*) present_terminal omari-setup-security-fido2 2>/dev/null || \
+    present_terminal "echo 'Fido2 security key setup is not yet available for Kali.\nSee: https://developers.yubico.com/libfido2/'" ;;
+  *) show_setup_menu ;;
   esac
 }
 
@@ -320,14 +444,19 @@ show_setup_default_editor_menu() {
 }
 
 show_setup_config_menu() {
-  case $(menu "Setup" "󰌧  Walker") in
+  case $(menu "Setup" "󰨳  Niri\n󰌧  Walker\n󰍜  Waybar\n󰂛  Mako\n  Starship\n  Tmux") in
+  *Niri*) open_in_editor ~/.config/niri/config.kdl ;;
   *Walker*) open_in_editor ~/.config/walker/config.toml && omari-restart-walker ;;
+  *Waybar*) open_in_editor ~/.config/waybar/config.jsonc && omari-restart-waybar ;;
+  *Mako*) open_in_editor ~/.config/mako/config && omari-restart-mako ;;
+  *Starship*) open_in_editor ~/.config/starship.toml ;;
+  *Tmux*) open_in_editor ~/.config/tmux/tmux.conf && omari-restart-tmux ;;
   *) show_setup_menu ;;
   esac
 }
 
 show_install_menu() {
-  case $(menu "Install" "  Package\n  Web App\n  TUI\n  Service\n  Browser\n  Style\n󰵮  Development\n  Editor\n  Terminal") in
+  case $(menu "Install" "  Package\n  Web App\n  TUI\n  Service\n  Browser\n  Style\n󰵮  Development\n  Editor\n  Terminal\n󱚤  AI\n  Gaming") in
   *Package*) terminal omari-pkg-install ;;
   *Web*) present_terminal omari-webapp-install ;;
   *TUI*) present_terminal omari-tui-install ;;
@@ -337,6 +466,8 @@ show_install_menu() {
   *Development*) show_install_development_menu ;;
   *Editor*) show_install_editor_menu ;;
   *Terminal*) show_install_terminal_menu ;;
+  *AI*) show_install_ai_menu ;;
+  *Gaming*) show_install_gaming_menu ;;
   *) show_main_menu ;;
   esac
 }
@@ -450,14 +581,50 @@ show_install_terminal_menu() {
   esac
 }
 
+show_install_ai_menu() {
+  case $(menu "Install" "󱚤  Ollama\n󱚤  LM Studio") in
+  *Ollama*) install "Ollama" "ollama" ;;
+  *LM*) present_terminal "omari-install-lm-studio" 2>/dev/null || \
+    install "LM Studio" "lmstudio" ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_install_gaming_menu() {
+  case $(menu "Install" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller") in
+  *Steam*) present_terminal omari-install-steam ;;
+  *RetroArch*) install "RetroArch" "retroarch" ;;
+  *Minecraft*) present_terminal omari-install-minecraft ;;
+  *Lutris*) present_terminal omari-install-lutris ;;
+  *Heroic*) present_terminal omari-install-heroic ;;
+  *Moonlight*) present_terminal omari-install-moonlight ;;
+  *Xbox*) present_terminal omari-install-xbox-controllers ;;
+  *) show_install_menu ;;
+  esac
+}
+
+show_remove_gaming_menu() {
+  case $(menu "Remove" "  Steam\n  RetroArch\n󰍳  Minecraft\n  Lutris (Battle.net)\n󱓟  Heroic (Epic Games)\n󰍹  Moonlight (GameStream)\n󰂯  Xbox Controller") in
+  *Steam*) present_terminal omari-remove-steam ;;
+  *RetroArch*) remove "RetroArch" "retroarch" ;;
+  *Minecraft*) present_terminal omari-remove-minecraft ;;
+  *Lutris*) present_terminal omari-remove-lutris ;;
+  *Heroic*) present_terminal omari-remove-heroic ;;
+  *Moonlight*) present_terminal omari-remove-moonlight ;;
+  *Xbox*) present_terminal omari-remove-xbox-controllers ;;
+  *) show_remove_menu ;;
+  esac
+}
+
 show_remove_menu() {
-  case $(menu "Remove" "  Package\n  Web App\n  TUI\n  Style\n  Browser\n󰵮  Development\n󰏓  Preinstalls") in
+  case $(menu "Remove" "  Package\n  Web App\n  TUI\n  Style\n  Browser\n󰵮  Development\n  Gaming\n󰏓  Preinstalls") in
   *Package*) terminal omari-pkg-remove ;;
   *Web*) present_terminal omari-webapp-remove ;;
   *TUI*) present_terminal omari-tui-remove ;;
   *Style*) show_remove_style_menu ;;
   *Browser*) show_remove_browser_menu ;;
   *Development*) show_remove_development_menu ;;
+  *Gaming*) show_remove_gaming_menu ;;
   *Preinstalls*) present_terminal omari-remove-preinstalls ;;
   *) show_main_menu ;;
   esac
@@ -531,7 +698,7 @@ show_remove_elixir_menu() {
 show_update_menu() {
   local brand_name=$(omari-branding-name)
 
-  case $(menu "Update" "󰟢  $brand_name\n󰔫  Channel\n  Config\n󰸌  Themes\n  Process\n󰇅  Hardware\n  Firmware\n  Password") in
+  case $(menu "Update" "󰟢  $brand_name\n󰔫  Channel\n  Config\n󰸌  Themes\n  Process\n󰇅  Hardware\n  Firmware\n  Password\n  Time") in
   *$brand_name*) present_terminal omari-update ;;
   *Channel*) show_update_channel_menu ;;
   *Config*) show_update_config_menu ;;
@@ -540,6 +707,7 @@ show_update_menu() {
   *Hardware*) show_update_hardware_menu ;;
   *Firmware*) present_terminal omari-update-firmware ;;
   *Password*) show_update_password_menu ;;
+  *Time*) present_terminal "sudo timedatectl set-ntp true && sudo systemctl restart systemd-timesyncd" ;;
   *) show_main_menu ;;
   esac
 }
@@ -565,8 +733,11 @@ show_update_config_menu() {
 }
 
 show_update_process_menu() {
-  case $(menu "Restart" "󰌧  Walker") in
+  case $(menu "Restart" "󰌧  Walker\n󰍜  Waybar\n󰂛  Mako\n  Niri") in
   *Walker*) omari-restart-walker ;;
+  *Waybar*) omari-restart-waybar ;;
+  *Mako*) omari-restart-mako 2>/dev/null || true ;;
+  *Niri*) niri msg action quit 2>/dev/null || true ;;
   *) show_update_menu ;;
   esac
 }
@@ -618,12 +789,18 @@ go_to_menu() {
   *share*) show_share_menu ;;
   *reminder-set*) show_custom_reminder_input ;;
   *reminder*) show_reminder_menu ;;
+  *capture*) show_capture_menu ;;
+  *screenrecord*) show_screenrecord_menu ;;
+  *hardware*) show_hardware_menu ;;
   *background*) show_background_menu ;;
   *style*) show_style_menu ;;
   *theme*) show_theme_menu ;;
   *setup*) show_setup_menu ;;
   *power*) show_setup_power_menu ;;
+  *security*) show_setup_security_menu ;;
+  *battery*) show_setup_battery_menu ;;
   *install*) show_install_menu ;;
+  *gaming*) show_install_gaming_menu ;;
   *remove*) show_remove_menu ;;
   *update*) show_update_menu ;;
   *about*) show_about ;;
