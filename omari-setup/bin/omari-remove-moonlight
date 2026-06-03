@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Remove Moonlight
+# omari:requires-sudo=true
+
+echo "Removing Moonlight..."
+flatpak remove -y com.moonlight_stream.Moonlight 2>/dev/null
+sudo apt-get remove -y moonlight-qt 2>/dev/null
+sudo apt-get autoremove -y

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# omari:summary=Install Xbox controller drivers
+# omari:requires-sudo=true
+
+echo "Installing Xbox controller support..."
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends xpadneo-dkms 2>/dev/null || {
+  sudo apt-get install -y --no-install-recommends xboxdrv
+}
+echo "Xbox controller drivers installed. Reconnect your controller."

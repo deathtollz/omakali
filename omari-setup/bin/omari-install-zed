@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# omari:summary=Install Zed editor
+# omari:requires-sudo=true
+
+echo "Installing Zed..."
+curl -fsSL https://zed.dev/install.sh | sh

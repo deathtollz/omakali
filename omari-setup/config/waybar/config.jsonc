@@ -40,7 +40,7 @@
     },
   },
   "custom/omari": {
-    "format": "",
+    "format": " ",
     "on-click": "omari-menu",
     "on-click-right": "xdg-terminal-exec",
     "tooltip-format": "Omari Menu\n\nSuper + Alt + Space",

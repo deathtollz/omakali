@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=Detect if a touchscreen is present (returns 0 if yes)
+
+libinput list-devices 2>/dev/null | grep -qi "touchscreen" && exit 0
+exit 1

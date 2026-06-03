@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Install Heroic Games Launcher (Epic Games)
+# omari:requires-sudo=true
+
+echo "Installing Heroic Games Launcher..."
+flatpak install -y flathub com.heroicgameslauncher.hgl 2>/dev/null || {
+  echo "Heroic is best installed via Flatpak. Install flatpak and try again."
+}

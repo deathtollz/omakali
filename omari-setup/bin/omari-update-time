@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Synchronize system time via NTP
+# omari:requires-sudo=true
+
+sudo timedatectl set-ntp true
+sudo systemctl restart systemd-timesyncd 2>/dev/null || sudo systemctl restart ntp 2>/dev/null
+echo "System time synchronized."

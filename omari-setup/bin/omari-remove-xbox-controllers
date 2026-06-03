@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Remove Xbox controller drivers
+# omari:requires-sudo=true
+
+echo "Removing Xbox controller drivers..."
+sudo apt-get remove -y xpadneo-dkms xboxdrv 2>/dev/null
+sudo apt-get autoremove -y

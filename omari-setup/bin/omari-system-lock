@@ -1,3 +1,16 @@
 #!/bin/bash
 
-# TODO: Add a lock screen script
+# omari:summary=Lock the screen using swaylock or any available locker.
+# omari:examples=omari system lock
+
+if command -v swaylock &>/dev/null; then
+  swaylock
+elif command -v hyprlock &>/dev/null; then
+  hyprlock
+elif command -v physlock &>/dev/null; then
+  physlock -d
+elif command -v i3lock &>/dev/null; then
+  i3lock
+else
+  notify-send -u critical "Lock screen" "No screen locker found (install swaylock)"
+fi

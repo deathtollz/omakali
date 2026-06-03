@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Remove Steam
+# omari:requires-sudo=true
+
+echo "Removing Steam..."
+sudo apt-get remove -y steam-installer steam-libs steam-devices 2>/dev/null
+sudo apt-get autoremove -y

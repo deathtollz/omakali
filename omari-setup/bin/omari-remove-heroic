@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Remove Heroic Games Launcher
+# omari:requires-sudo=true
+
+echo "Removing Heroic Games Launcher..."
+flatpak remove -y com.heroicgameslauncher.hgl 2>/dev/null
+sudo apt-get autoremove -y

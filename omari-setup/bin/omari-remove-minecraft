@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Remove Minecraft Launcher
+# omari:requires-sudo=true
+
+echo "Removing Minecraft Launcher..."
+flatpak remove -y com.mojang.Minecraft 2>/dev/null
+sudo apt-get remove -y minecraft-launcher 2>/dev/null
+sudo apt-get autoremove -y

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Install Minecraft Launcher
+# omari:requires-sudo=true
+
+echo "Installing Minecraft Launcher..."
+flatpak install -y flathub com.mojang.Minecraft 2>/dev/null || {
+  sudo apt-get update
+  sudo apt-get install -y --no-install-recommends minecraft-launcher
+}

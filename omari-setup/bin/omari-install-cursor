@@ -1,15 +1,12 @@
 #!/bin/bash
 
-# omari:summary=Install Cursor IDE (AppImage)
+# omari:summary=Install Cursor AI editor
 
-APPIMAGE_URL="https://downloads.cursor.com/production/linux/x64/cursor-linux-x64.AppImage"
-APPIMAGE="$HOME/Downloads/Cursor.AppImage"
-
-echo "Downloading Cursor IDE..."
-curl -fsSL "$APPIMAGE_URL" -o "$APPIMAGE" || {
-  notify-send -u critical "Cursor" "Download failed"
-  exit 1
+echo "Installing Cursor..."
+flatpak install -y flathub com.todesktop.230113mqtodmhsu 2>/dev/null || {
+  echo "Downloading Cursor..."
+  curl -fsSL "https://cursor.sh/downloads/linux/appImage" -o /tmp/cursor.AppImage
+  mkdir -p ~/.local/share/cursor
+  install /tmp/cursor.AppImage ~/.local/share/cursor/cursor.AppImage
+  echo "Cursor installed to ~/.local/share/cursor/"
 }
-
-chmod +x "$APPIMAGE"
-notify-send "Cursor" "Downloaded to $APPIMAGE"

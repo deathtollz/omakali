@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# omari:summary=Configure system hibernation (swap-based)
+# omari:requires-sudo=true
+
+echo "Configuring hibernation..."
+SWAP_DEV=$(findmnt -no SOURCE -T / 2>/dev/null | tail -1)
+SWAP_UUID=$(sudo findmnt -no UUID -T / 2>/dev/null | tail -1)
+SWAP_OFFSET=$(sudo filefrag -v /swapfile 2>/dev/null | awk 'NR==4{print $4}' | sed 's/\.//')
+
+if [[ -n $SWAP_UUID && -n $SWAP_OFFSET ]]; then
+  echo "resume=UUID=$SWAP_UUID resume_offset=$SWAP_OFFSET" | sudo tee /etc/initramfs-tools/conf.d/resume
+  sudo update-initramfs -u
+  echo "Hibernation configured. Add the kernel params to your bootloader."
+elif sudo swapon --show | grep -q partition; then
+  echo "resume=UUID=$SWAP_UUID" | sudo tee /etc/initramfs-tools/conf.d/resume
+  sudo update-initramfs -u
+  echo "Hibernation configured with swap partition."
+else
+  echo "No swap file or partition found. Create a swap file first."
+  echo "See: https://wiki.debian.org/Hibernation"
+fi

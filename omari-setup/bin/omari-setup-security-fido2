@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omari:summary=Set up FIDO2 security key for authentication
+# omari:requires-sudo=true
+
+echo "Setting up FIDO2 security key..."
+sudo apt-get install -y --no-install-recommends libfido2-1 libpam-u2f
+echo "Please insert your FIDO2/ U2F security key and touch it..."
+sudo pamu2fcfg > /etc/u2f_keys 2>/dev/null || {
+  pamu2fcfg >> ~/.config/Yubico/u2f_keys
+}
+echo "FIDO2 key configured. You may need to add 'auth sufficient pam_u2f.so' to /etc/pam.d/"

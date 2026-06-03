@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# omari:summary=Detect if a touchpad is present (returns 0 if yes)
+
+libinput list-devices 2>/dev/null | grep -qi "touchpad" && exit 0
+[[ -d /sys/class/input/$(grep -l 'touchpad' /sys/class/input/*/device/name 2>/dev/null | head -1) ]] && exit 0
+exit 1

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# omari:summary=Install Steam
+# omari:requires-sudo=true
+
+echo "Installing Steam..."
+sudo dpkg --add-architecture i386
+sudo apt-get update
+omari-pkg-add steam-installer

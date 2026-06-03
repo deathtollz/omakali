@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# omari:summary=Select system timezone interactively
+# omari:requires-sudo=true
+
+if command -v timedatectl &>/dev/null; then
+  timedatectl list-timezones | fzf --prompt="Select timezone: " | sudo tee /etc/timezone
+  sudo dpkg-reconfigure -f noninteractive tzdata
+else
+  echo "timedatectl not available" >&2
+fi

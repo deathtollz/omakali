@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# omari:summary=Toggle window to a single square aspect ratio (Niri 26+)
+
+niri msg action set-window-height 50% 2>/dev/null || true
+niri msg action set-column-width "{ proportion 0.5; }" 2>/dev/null || true

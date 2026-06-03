@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Enroll a fingerprint for authentication
+# omari:requires-sudo=true
+
+echo "Setting up fingerprint authentication..."
+sudo apt-get install -y --no-install-recommends fprintd libpam-fprintd
+echo "Place your finger on the reader..."
+fprintd-enroll
+echo "Fingerprint enrolled. Use your finger for sudo and login."

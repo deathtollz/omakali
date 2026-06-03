@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Remove Lutris
+# omari:requires-sudo=true
+
+echo "Removing Lutris..."
+sudo apt-get remove -y lutris 2>/dev/null
+sudo apt-get autoremove -y

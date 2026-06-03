@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# omari:summary=Install Moonlight (GameStream client)
+# omari:requires-sudo=true
+
+echo "Installing Moonlight..."
+flatpak install -y flathub com.moonlight_stream.Moonlight 2>/dev/null || {
+  sudo apt-get update
+  sudo apt-get install -y --no-install-recommends moonlight-qt
+}

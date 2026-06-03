@@ -97,10 +97,10 @@ binds {
   Mod+Ctrl+F hotkey-overlay-title="Maximize window to edges" { maximize-window-to-edges; }
   Mod+Alt+F hotkey-overlay-title="Fullscreen window" { fullscreen-window; }
   //Mod+C hotkey-overlay-title="Center column" { center-column; }
-  Mod+Ctrl+C hotkey-overlay-title="Center visible columns" { center-visible-columns; }
+  Mod+Ctrl+Shift+C hotkey-overlay-title="Center visible columns" { center-visible-columns; }
   Mod+R hotkey-overlay-title="Cycle column width preset back" { switch-preset-column-width-back; }
   Mod+Shift+R hotkey-overlay-title="Cycle window height preset" { switch-preset-window-height; }
-  Mod+Ctrl+R hotkey-overlay-title="Reset window height" { reset-window-height; }
+  Mod+Ctrl+0 hotkey-overlay-title="Reset window height" { reset-window-height; }
 
   // Column stack (consume / expel)
   Mod+Comma hotkey-overlay-title="Consume window into column" { consume-window-into-column; }

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# omari:summary=Reset Niri keybindings to Omari defaults
+
+echo "Resetting niri keybindings to Omari defaults..."
+cp -a "$OMARI_PATH/default/niri/bindings/." "$HOME/.config/niri/"
+echo "Keybindings reset. Reload niri config with: niri msg action quit 2>/dev/null || true"

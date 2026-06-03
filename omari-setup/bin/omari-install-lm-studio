@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omari:summary=Install LM Studio (AI model runner)
+
+echo "Installing LM Studio..."
+flatpak install -y flathub com.lmstudio.LMStudio 2>/dev/null || {
+  echo "Downloading LM Studio AppImage..."
+  curl -fsSL "https://installers.lmstudio.ai/linux/x86_64/LM-Studio-*.AppImage" -o /tmp/lm-studio.AppImage 2>/dev/null || {
+    echo "LM Studio: Please install from https://lmstudio.ai/"
+    echo "Or try: flatpak install flathub com.lmstudio.LMStudio"
+  }
+}

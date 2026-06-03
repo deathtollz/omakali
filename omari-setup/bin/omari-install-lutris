@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omari:summary=Install Lutris (gaming platform)
+# omari:requires-sudo=true
+
+echo "Installing Lutris..."
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends lutris
