@@ -100,7 +100,7 @@ binds {
   Mod+Ctrl+Shift+C hotkey-overlay-title="Center visible columns" { center-visible-columns; }
   Mod+R hotkey-overlay-title="Cycle column width preset back" { switch-preset-column-width-back; }
   Mod+Shift+R hotkey-overlay-title="Cycle window height preset" { switch-preset-window-height; }
-  Mod+Ctrl+0 hotkey-overlay-title="Reset window height" { reset-window-height; }
+  Mod+Ctrl+Backspace hotkey-overlay-title="Reset window height" { reset-window-height; }
 
   // Column stack (consume / expel)
   Mod+Comma hotkey-overlay-title="Consume window into column" { consume-window-into-column; }
